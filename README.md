@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🚜 AgriTechRent
 
 An intelligent agricultural equipment rental management system built with Laravel. Streamline equipment rentals, track usage, and manage your agricultural business operations efficiently.
@@ -176,3 +177,6 @@ If you discover a security vulnerability, please email security@example.com inst
 ---
 
 **Made with  for the agricultural community**
+=======
+# Managing-and-Monitoring-System-for-Rented-Modern-Agricultural-Technologies
+>>>>>>> d9f04a3c55558bf47ce662211c5d931a632f2ee8
