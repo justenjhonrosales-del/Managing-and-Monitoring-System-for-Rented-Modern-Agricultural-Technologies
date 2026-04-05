@@ -1,0 +1,1 @@
+# Managing-and-Monitoring-System-for-Rented-Modern-Agricultural-Technologies
