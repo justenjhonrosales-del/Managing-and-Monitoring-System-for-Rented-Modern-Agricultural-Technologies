@@ -14,21 +14,35 @@ class WelcomeLoginController extends Controller
     public function login(Request $request)
     {
         $request->validate([
+            'role' => 'required|in:admin,staff',
             'username' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $validUsername = 'AgriTech2026';
-        $validPassword = 'admin123';
+        $credentials = [
+            'admin' => ['username' => 'systemadmin@gmail.com', 'password' => 'admin123'],
+            'staff' => ['username' => 'staff@gmail.com', 'password' => 'staff123'],
+        ];
 
-        if ($request->username === $validUsername && $request->password === $validPassword) {
-            session(['welcome_dashboard_logged_in' => true]);
+        $role = $request->input('role');
+        $valid = $credentials[$role] ?? null;
+
+        if ($valid && $request->username === $valid['username'] && $request->password === $valid['password']) {
+            session([
+                'welcome_dashboard_logged_in' => true,
+                'welcome_dashboard_role' => $role,
+            ]);
+
+            if ($role === 'admin') {
+                return redirect()->route('admin.welcome');
+            }
+
             return redirect('/');
         }
 
         return back()
-            ->withInput($request->only('username'))
-            ->withErrors(['login' => 'Invalid username or password.']);
+            ->withInput($request->only('username', 'role'))
+            ->withErrors(['login' => 'Invalid username, password, or role.']);
     }
     
 }

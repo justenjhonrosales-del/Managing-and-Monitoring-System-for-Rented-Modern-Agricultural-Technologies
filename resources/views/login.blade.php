@@ -104,6 +104,54 @@
             color: #999;
         }
 
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 22px;
+            border: 1px solid #d1d5db;
+            background: #f7fafc;
+            border-radius: 999px;
+            padding: 6px;
+        }
+
+        .toggle-switch button {
+            flex: 1;
+            padding: 10px 12px;
+            border: none;
+            background: transparent;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.25s ease, color 0.25s ease;
+            color: #4b5563;
+        }
+
+        .toggle-switch button.active {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+
+        .toggle-text {
+            text-align: center;
+            margin-bottom: 8px;
+            color: #4b5563;
+            font-size: 0.95rem;
+        }
+
+        .toggle-note {
+            text-align: center;
+            color: #4b5563;
+            font-size: 0.85rem;
+            margin-bottom: 18px;
+        }
+
+        .toggle-note strong {
+            color: #1f2937;
+        }
+
         .form-error {
             color: #dc2626;
             font-size: 0.8rem;
@@ -166,8 +214,8 @@
     <div class="login-container">
         <div class="login-header">
             <div class="login-logo">AgriTech</div>
-            <div class="login-title">Welcome Dashboard</div>
-            <div class="login-subtitle">Please login to continue</div>
+            <div id="loginTitle" class="login-title">Admin Login</div>
+            <div class="login-subtitle">Select staff or admin access to proceed</div>
         </div>
 
         @if ($errors->any())
@@ -180,6 +228,14 @@
 
         <form method="POST" action="{{ route('welcome.login') }}" class="login-form">
             @csrf
+
+            <input type="hidden" name="role" id="role" value="{{ old('role', 'admin') }}" />
+
+            <div class="toggle-switch" role="tablist" aria-label="Login type switch">
+                <button type="button" class="toggle-option {{ old('role', 'admin') === 'admin' ? 'active' : '' }}" data-role="admin">Admin</button>
+                <button type="button" class="toggle-option {{ old('role') === 'staff' ? 'active' : '' }}" data-role="staff">Staff</button>
+            </div>
+            <div id="toggleHint" class="toggle-text">Login as admin or staff</div>
 
             <!-- Username -->
             <div class="form-group">
@@ -219,6 +275,24 @@
             <button type="submit" class="btn-login">LOGIN</button>
         </form>
     </div>
+
+    <script>
+        const toggleButtons = document.querySelectorAll('.toggle-option');
+        const roleInput = document.getElementById('role');
+        const loginTitle = document.getElementById('loginTitle');
+        const toggleHint = document.getElementById('toggleHint');
+
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                toggleButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                const role = button.dataset.role;
+                roleInput.value = role;
+                loginTitle.textContent = role === 'staff' ? 'Staff Login' : 'Admin Login';
+                toggleHint.textContent = role === 'staff' ? 'Enter staff credentials to continue' : 'Enter admin credentials to continue';
+            });
+        });
+    </script>
 </body>
 </html>
 

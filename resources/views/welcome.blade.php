@@ -810,12 +810,10 @@
                 </ul>
 
                 <div class="nav-right">
-                    @if (Route::has('login'))
-                        @auth
-                            <a href="{{ url('/dashboard') }}" class="btn-login">Dashboard</a>
-                        @else
-                            <a href="{{ route('login') }}" class="btn-login">Login</a>
-                        @endauth
+                    @if (session('welcome_dashboard_logged_in'))
+                        <a href="{{ route('welcome.logout') }}" class="btn-login">Logout</a>
+                    @else
+                        <a href="{{ route('welcome.login.show') }}" class="btn-login">Login</a>
                     @endif
                 </div>
             </nav>

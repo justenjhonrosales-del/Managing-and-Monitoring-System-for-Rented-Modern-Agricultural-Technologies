@@ -8,13 +8,37 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/welcome-login', [WelcomeLoginController::class, 'showLoginForm'])->name('welcome.login.show');
 Route::post('/welcome-login', [WelcomeLoginController::class, 'login'])->name('welcome.login');
+Route::get('/welcome-logout', function () {
+    session()->forget(['welcome_dashboard_logged_in', 'welcome_dashboard_role']);
+    session()->regenerate();
+    return redirect()->route('welcome.login.show');
+})->name('welcome.logout');
 
 Route::get('/', function () {
     if (!session('welcome_dashboard_logged_in')) {
         return redirect('/welcome-login');
     }
+
+    if (session('welcome_dashboard_role') === 'admin') {
+        return redirect()->route('admin.welcome');
+    }
+
     return view('welcome');
 });
+
+Route::get('/admin/welcome', function () {
+    if (!session('welcome_dashboard_logged_in') || session('welcome_dashboard_role') !== 'admin') {
+        return redirect('/welcome-login');
+    }
+
+    $rentals = \App\Models\Rental::latest()->get();
+    $totalPayment = \App\Models\Rental::where('status', 'completed')
+        ->whereNotNull('total_amount')
+        ->where('total_amount', '>', 0)
+        ->sum('total_amount');
+
+    return view('admin.welcome', compact('rentals', 'totalPayment'));
+})->name('admin.welcome');
 
 Route::get('/rental', [RentalController::class, 'index'])->name('rental');
 Route::post('/rental', [RentalController::class, 'store'])->name('rental.store');
