@@ -19,6 +19,10 @@ class IsAdmin
             return $next($request);
         }
 
-        return redirect('/dashboard');
+        if (session('welcome_dashboard_logged_in') && session('welcome_dashboard_role') === 'admin') {
+            return $next($request);
+        }
+
+        return redirect()->route('welcome.login.show');
     }
 }

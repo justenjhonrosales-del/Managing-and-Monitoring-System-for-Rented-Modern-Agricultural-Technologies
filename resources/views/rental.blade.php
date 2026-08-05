@@ -243,48 +243,48 @@
             font-size: 1.1rem;
             font-weight: 600;
             color: var(--text-dark);
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
 
-        .equipment-card-stock {
+        .equipment-status-list {
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
             font-size: 0.85rem;
-            margin-bottom: 10px;
         }
 
-        .stock-available {
-            background: #d4edda;
-            color: #155724;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-        }
-
-        .stock-pending {
-            background: #e2e3e5;
-            color: #383d41;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-
-        .quantity-selector {
+        .equipment-status-item {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 8px;
+            background: #f3f4f6;
+            padding: 6px 8px;
+            border-radius: 4px;
         }
 
-        .quantity-selector label {
-            font-size: 0.85rem;
+        .equipment-status-label {
             color: var(--text-light);
         }
 
-        .quantity-input {
-            width: 60px;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-align: center;
+        .equipment-status-value {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .equipment-rent-btn {
+            width: 100%;
+            padding: 10px 12px;
+            border: none;
+            border-radius: 6px;
+            background: var(--primary-color);
+            color: var(--white);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .equipment-rent-btn:hover {
+            background: var(--primary-dark);
         }
 
         .customer-info-section {
@@ -443,36 +443,27 @@
                     @endphp
 
                     @foreach ($equipments as $equipment)
-                        @php
-                            $setting = $equipmentSettings[$equipment['name']] ?? null;
-                            $isAvailable = $setting ? $setting->isAccessible() : true;
-                            $statusColor = $setting ? $setting->getStatusColor() : '#2e7d32';
-                            $status = $setting ? ucfirst(str_replace('_', ' ', $setting->status)) : 'Available';
-                        @endphp
-                        
-                        <div class="equipment-card" style="@if(!$isAvailable) opacity: 0.6; @endif">
-                            <div class="equipment-card-image" style="@if(!$isAvailable) position: relative; @endif">
+                        <div class="equipment-card">
+                            <div class="equipment-card-image">
                                 <img src="{{ asset('images/' . $equipment['image']) }}" alt="{{ $equipment['name'] }}">
-                                @if(!$isAvailable)
-                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; text-align: center; font-size: 14px; white-space: nowrap;">
-                                        {{ $status }}
-                                    </div>
-                                @endif
                             </div>
                             <div class="equipment-card-info">
                                 <div class="equipment-card-title">{{ $equipment['name'] }}</div>
-                                <div class="equipment-card-stock">
-                                    <span class="stock-available" style="color: {{ $statusColor }}; font-weight: 600;">
-                                        Status: {{ $status }}
-                                    </span>
-                                    @if($setting && $setting->notes)
-                                        <div style="font-size: 12px; color: #666; margin-top: 4px;">{{ $setting->notes }}</div>
-                                    @endif
+                                <div class="equipment-status-list">
+                                    <div class="equipment-status-item">
+                                        <span class="equipment-status-label">Available</span>
+                                        <span class="equipment-status-value">2</span>
+                                    </div>
+                                    <div class="equipment-status-item">
+                                        <span class="equipment-status-label">Pending</span>
+                                        <span class="equipment-status-value">0</span>
+                                    </div>
+                                    <div class="equipment-status-item">
+                                        <span class="equipment-status-label">Maintenance</span>
+                                        <span class="equipment-status-value">0</span>
+                                    </div>
                                 </div>
-                                <div class="quantity-selector">
-                                    <label>Quantity to Rent:</label>
-                                    <input type="number" class="quantity-input" data-equipment="{{ $equipment['name'] }}" value="0" min="0" @if(!$isAvailable) disabled @endif>
-                                </div>
+                                <button type="button" class="equipment-rent-btn">Rent Now</button>
                             </div>
                         </div>
                     @endforeach
@@ -493,58 +484,23 @@
                             <input type="number" name="age" placeholder="Enter age" value="{{ old('age') }}" required>
                         </div>
 
-                        <div class="form-group">
-                            <label>Field Area (Hectares)</label>
-                            <select name="field_area" required>
-                                <option value="">Select field area</option>
-                                <option value="1" {{ old('field_area') == '1' ? 'selected' : '' }}>1 Hectare</option>
-                                <option value="2" {{ old('field_area') == '2' ? 'selected' : '' }}>2 Hectares</option>
-                                <option value="3" {{ old('field_area') == '3' ? 'selected' : '' }}>3 Hectares</option>
-                                <option value="5" {{ old('field_area') == '5' ? 'selected' : '' }}>5 Hectares</option>
-                                <option value="10" {{ old('field_area') == '10' ? 'selected' : '' }}>10+ Hectares</option>
-                            </select>
-                        </div>
-
                         <div class="form-group form-full-width">
                             <label>Primary Address</label>
                             <input type="text" name="primary_address" placeholder="Enter primary address" value="{{ old('primary_address') }}" required>
                         </div>
 
-                        <div class="form-group form-full-width">
-                            <label>Notes</label>
-                            <textarea name="notes" placeholder="Add any additional notes about your rental...">{{ old('notes') }}</textarea>
-                        </div>
-
-                        <div class="form-group form-full-width">
-                            <label>Additional Delivery Address Notes</label>
-                            <textarea name="delivery_notes" placeholder="Provide delivery instructions or special notes...">{{ old('delivery_notes') }}</textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Rental From (Date)</label>
-                            <input type="date" name="rental_from" value="{{ old('rental_from') }}">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Rental To (Date)</label>
-                            <input type="date" name="rental_to" value="{{ old('rental_to') }}">
-                        </div>
-
-                        <div class="form-group form-full-width">
-                            <label>Rental Duration (Hours)</label>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <span style="font-size: 1.2rem; color: #2e7d32;"></span>
-                                <input type="number" name="rental_duration_hours" step="0.5" min="0" placeholder="Enter hours (e.g., 2.5)" value="{{ old('rental_duration_hours') }}" style="flex: 1;">
-                                <span style="background: #f0f0f0; padding: 8px 12px; border-radius: 4px; color: #666;">hrs</span>
-                            </div>
-                        </div>
-
+                        <input type="hidden" name="field_area" value="">
+                        <input type="hidden" name="notes" value="">
+                        <input type="hidden" name="delivery_notes" value="">
+                        <input type="hidden" name="rental_from" value="">
+                        <input type="hidden" name="rental_to" value="">
+                        <input type="hidden" name="rental_duration_hours" value="">
                         <input type="hidden" name="equipment" id="equipmentInput" value="">
                     </div>
                 </div>
 
                 <!-- Rent Button -->
-                <button type="submit" class="btn-rent">Rent Selected Equipment</button>
+              
             </form>
 
             <script>
@@ -621,36 +577,17 @@
                         return false;
                     }
 
-                    const equipmentInputs = document.querySelectorAll('.quantity-input');
                     const equipment = [];
-                    let hasDisabledEquipmentSelected = false;
-                    
-                    equipmentInputs.forEach((input) => {
-                        const quantity = parseInt(input.value) || 0;
-                        const name = input.getAttribute('data-equipment');
-                        
-                        // Check if user tried to select disabled equipment
-                        if (input.disabled && quantity > 0) {
-                            hasDisabledEquipmentSelected = true;
-                        }
-                        
-                        if (quantity > 0 && !input.disabled) {
-                            equipment.push({
-                                name: name,
-                                quantity: quantity
-                            });
-                        }
+                    document.querySelectorAll('.equipment-card').forEach((card) => {
+                        equipment.push({
+                            name: card.querySelector('.equipment-card-title').textContent.trim(),
+                            quantity: 1
+                        });
                     });
-
-                    if (hasDisabledEquipmentSelected) {
-                        e.preventDefault();
-                        alert('Some equipment you selected are currently unavailable. Please select only available equipment.');
-                        return false;
-                    }
 
                     if (equipment.length === 0) {
                         e.preventDefault();
-                        alert('Please select at least one available equipment to rent.');
+                        alert('Please select at least one equipment to rent.');
                         return false;
                     }
 

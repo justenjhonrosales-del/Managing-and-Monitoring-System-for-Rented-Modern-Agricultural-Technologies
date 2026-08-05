@@ -58,23 +58,23 @@ Route::get('/admin/dashboard', function () {
         ->where('total_amount', '>', 0)
         ->sum('total_amount');
     return view('admin.welcome', compact('rentals', 'totalPayment'));
-})->middleware(['auth', 'verified', 'is.admin'])->name('admin.dashboard');
+})->middleware(['is.admin'])->name('admin.dashboard');
 
-Route::get('/admin/rentals', [RentalController::class, 'manage'])->middleware(['auth', 'verified', 'is.admin'])->name('admin.rentals');
-Route::get('/admin/reports', [RentalController::class, 'reports'])->middleware(['auth', 'verified', 'is.admin'])->name('admin.reports');
-Route::get('/admin/payments', [RentalController::class, 'payments'])->middleware(['auth', 'verified', 'is.admin'])->name('admin.payments');
-Route::get('/admin/payments/export-pdf', [RentalController::class, 'exportPaymentsPdf'])->middleware(['auth', 'verified', 'is.admin'])->name('admin.payments.export');
-Route::patch('/admin/rentals/{id}/status', [RentalController::class, 'updateStatus'])->middleware(['auth', 'verified', 'is.admin'])->name('rental.updateStatus');
-Route::delete('/admin/rentals/{id}', [RentalController::class, 'destroy'])->middleware(['auth', 'verified', 'is.admin'])->name('rental.destroy');
+Route::get('/admin/rentals', [RentalController::class, 'manage'])->middleware(['is.admin'])->name('admin.rentals');
+Route::get('/admin/reports', [RentalController::class, 'reports'])->middleware(['is.admin'])->name('admin.reports');
+Route::get('/admin/payments', [RentalController::class, 'payments'])->middleware(['is.admin'])->name('admin.payments');
+Route::get('/admin/payments/export-pdf', [RentalController::class, 'exportPaymentsPdf'])->middleware(['is.admin'])->name('admin.payments.export');
+Route::patch('/admin/rentals/{id}/status', [RentalController::class, 'updateStatus'])->middleware(['is.admin'])->name('rental.updateStatus');
+Route::delete('/admin/rentals/{id}', [RentalController::class, 'destroy'])->middleware(['is.admin'])->name('rental.destroy');
 
 // Settings routes
-Route::get('/admin/settings', [SettingsController::class, 'index'])->middleware(['auth', 'verified', 'is.admin'])->name('admin.settings');
-Route::put('/admin/settings/equipment', [SettingsController::class, 'updateEquipmentSettings'])->middleware(['auth', 'verified', 'is.admin'])->name('settings.equipment.update');
-Route::put('/admin/settings/security', [SettingsController::class, 'updateSecuritySettings'])->middleware(['auth', 'verified', 'is.admin'])->name('settings.security.update');
-Route::put('/admin/settings/account', [SettingsController::class, 'updateAccountSettings'])->middleware(['auth', 'verified', 'is.admin'])->name('settings.account.update');
-Route::put('/admin/settings/password', [SettingsController::class, 'updatePassword'])->middleware(['auth', 'verified', 'is.admin'])->name('settings.password.update');
-Route::post('/admin/settings/toggle/automark', [SettingsController::class, 'toggleAutoMarkUnavailable'])->middleware(['auth', 'verified', 'is.admin'])->name('settings.toggle.automark');
-Route::post('/admin/settings/toggle/loginrules', [SettingsController::class, 'toggleLoginRules'])->middleware(['auth', 'verified', 'is.admin'])->name('settings.toggle.loginrules');
+Route::get('/admin/settings', [SettingsController::class, 'index'])->middleware(['is.admin'])->name('admin.settings');
+Route::put('/admin/settings/equipment', [SettingsController::class, 'updateEquipmentSettings'])->middleware(['is.admin'])->name('settings.equipment.update');
+Route::put('/admin/settings/security', [SettingsController::class, 'updateSecuritySettings'])->middleware(['is.admin'])->name('settings.security.update');
+Route::put('/admin/settings/account', [SettingsController::class, 'updateAccountSettings'])->middleware(['is.admin'])->name('settings.account.update');
+Route::put('/admin/settings/password', [SettingsController::class, 'updatePassword'])->middleware(['is.admin'])->name('settings.password.update');
+Route::post('/admin/settings/toggle/automark', [SettingsController::class, 'toggleAutoMarkUnavailable'])->middleware(['is.admin'])->name('settings.toggle.automark');
+Route::post('/admin/settings/toggle/loginrules', [SettingsController::class, 'toggleLoginRules'])->middleware(['is.admin'])->name('settings.toggle.loginrules');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

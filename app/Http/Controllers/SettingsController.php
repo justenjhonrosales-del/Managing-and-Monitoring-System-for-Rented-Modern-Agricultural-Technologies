@@ -27,13 +27,23 @@ class SettingsController extends Controller
             'enable_login_rules' => SystemSetting::get('enable_login_rules', 1),
         ];
 
+        $currentUser = auth()->user();
+
+        if (!$currentUser) {
+            $currentUser = (object) [
+                'id' => null,
+                'name' => 'Admin User',
+                'email' => 'admin@example.com',
+                'phone' => null,
+                'bio' => null,
+            ];
+        }
+
         // Get login attempts for current admin
-        $recentLoginAttempts = LoginAttempt::where('email', auth()->user()->email)
+        $recentLoginAttempts = LoginAttempt::where('email', $currentUser->email)
             ->orderBy('attempted_at', 'desc')
             ->limit(10)
             ->get();
-
-        $currentUser = auth()->user();
 
         return view('admin.settings', compact(
             'equipmentSettings',
@@ -49,18 +59,14 @@ class SettingsController extends Controller
     public function updateEquipmentSettings(Request $request)
     {
         $validated = $request->validate([
-            'equipment_status' => 'array',
-            'equipment_status.*' => 'string|in:available,unavailable,under_maintenance',
             'equipment_notes' => 'array',
             'equipment_notes.*' => 'nullable|string',
         ]);
 
-        foreach ($validated['equipment_status'] as $equipmentId => $status) {
+        foreach ($validated['equipment_notes'] ?? [] as $equipmentId => $notes) {
             $equipment = EquipmentSetting::find($equipmentId);
             if ($equipment) {
-                $equipment->status = $status;
-                $equipment->notes = $validated['equipment_notes'][$equipmentId] ?? $equipment->notes;
-                $equipment->is_available = ($status === 'available');
+                $equipment->notes = $notes;
                 $equipment->save();
             }
         }
