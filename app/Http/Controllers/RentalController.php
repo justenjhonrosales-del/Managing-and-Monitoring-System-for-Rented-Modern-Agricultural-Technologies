@@ -6,6 +6,7 @@ use App\Models\Rental;
 use App\Models\EquipmentSetting;
 use App\Models\SystemSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 
 class RentalController extends Controller
@@ -20,6 +21,37 @@ class RentalController extends Controller
     {
         $rentals = Rental::latest()->get();
         return view('admin.rentals', compact('rentals'));
+    }
+
+    public function userIndex()
+    {
+        if (Auth::check()) {
+            $rentals = Auth::user()->rentals()
+                ->orderBy('rental_from', 'asc')
+                ->orderByRaw("STR_TO_DATE(start_time, '%h:%i %p') ASC")
+                ->get();
+        } elseif (session('welcome_dashboard_logged_in')) {
+            $rentals = Rental::orderBy('rental_from', 'asc')
+                ->orderByRaw("STR_TO_DATE(start_time, '%h:%i %p') ASC")
+                ->get();
+        } else {
+            abort(403);
+        }
+
+        return view('rents.index', compact('rentals'));
+    }
+
+    public function userShow($id)
+    {
+        if (Auth::check()) {
+            $rental = Auth::user()->rentals()->findOrFail($id);
+        } elseif (session('welcome_dashboard_logged_in')) {
+            $rental = Rental::findOrFail($id);
+        } else {
+            abort(403);
+        }
+
+        return view('rents.show', compact('rental'));
     }
 
     public function reports(Request $request)
@@ -146,25 +178,29 @@ class RentalController extends Controller
     {
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255',
-            'age' => 'required|integer',
+            'age' => 'required|integer|min:1',
             'field_area' => 'required|string|max:255',
             'primary_address' => 'required|string',
+            'usage_type' => 'required|in:public,private',
+            'start_time' => 'required|string|max:50',
             'notes' => 'nullable|string',
             'delivery_notes' => 'nullable|string',
             'equipment' => 'required|json',
-            'rental_from' => 'nullable|date',
+            'rental_from' => 'required|date',
             'rental_to' => 'nullable|date',
-            'rental_duration_hours' => 'nullable|numeric|min:0',
+            'rental_duration_hours' => 'required|numeric|min:0',
+            'total_amount' => 'required|numeric|min:0',
         ]);
 
         // Decode equipment JSON
         $equipment = json_decode($validated['equipment'], true);
         if (empty($equipment)) {
-            return back()->withErrors(['equipment' => 'Please select at least one equipment.']);
+            return back()->withErrors(['equipment' => 'Please select at least one equipment.'])->withInput();
         }
 
-        // Check for duplicate customer names
+        // Check for duplicate customer names for the same authenticated user
         $duplicateCustomer = Rental::where('customer_name', $validated['customer_name'])
+            ->where('user_id', Auth::id())
             ->exists();
 
         if ($duplicateCustomer) {
@@ -177,10 +213,13 @@ class RentalController extends Controller
         // Create rental
         $rental = Rental::create([
             'rental_number' => $rentalNumber,
+            'user_id' => Auth::id(),
             'customer_name' => $validated['customer_name'],
             'age' => $validated['age'],
             'field_area' => $validated['field_area'],
             'primary_address' => $validated['primary_address'],
+            'usage_type' => $validated['usage_type'],
+            'start_time' => $validated['start_time'],
             'notes' => $validated['notes'] ?? null,
             'delivery_notes' => $validated['delivery_notes'] ?? null,
             'equipment' => $equipment,
@@ -188,6 +227,7 @@ class RentalController extends Controller
             'rental_from' => $validated['rental_from'] ?? null,
             'rental_to' => $validated['rental_to'] ?? null,
             'rental_duration_hours' => $validated['rental_duration_hours'] ?? null,
+            'total_amount' => $validated['total_amount'],
         ]);
 
         // Auto-mark equipment as unavailable if setting is enabled
@@ -223,7 +263,28 @@ class RentalController extends Controller
 
         return response()->json([
             'exists' => $exists,
-            'message' => $exists ? 'This name is already applied for renting equipment.' : ''
+        ]);
+    }
+
+    public function markPaid(Request $request, Rental $rental)
+    {
+        if (!Auth::check() && !session('welcome_dashboard_logged_in')) {
+            return response()->json(['message' => 'Unauthorized to update this rental.'], 403);
+        }
+
+        if (Auth::check() && $rental->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Unauthorized to update this rental.'], 403);
+        }
+
+        if ($rental->status !== 'pending') {
+            return response()->json(['message' => 'Only pending rentals can be marked as paid.'], 422);
+        }
+
+        $rental->update(['status' => 'paid']);
+
+        return response()->json([
+            'message' => 'Rental marked as paid successfully.',
+            'status' => 'paid',
         ]);
     }
 }

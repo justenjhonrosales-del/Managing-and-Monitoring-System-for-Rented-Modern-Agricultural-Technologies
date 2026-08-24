@@ -41,7 +41,12 @@ Route::get('/admin/welcome', function () {
 })->name('admin.welcome');
 
 Route::get('/rental', [RentalController::class, 'index'])->name('rental');
-Route::post('/rental', [RentalController::class, 'store'])->name('rental.store');
+Route::middleware('ensure.welcome.auth')->group(function () {
+    Route::post('/rental', [RentalController::class, 'store'])->name('rental.store');
+    Route::get('/rents', [RentalController::class, 'userIndex'])->name('rents.index');
+    Route::get('/rents/{id}', [RentalController::class, 'userShow'])->name('rents.show');
+});
+Route::patch('/rents/{rental}/mark-paid', [RentalController::class, 'markPaid'])->name('rents.markPaid');
 Route::post('/rental/check-duplicate-name', [RentalController::class, 'checkDuplicateName'])->name('rental.checkDuplicateName');
 
 Route::get('/dashboard', function () {

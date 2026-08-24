@@ -3,15 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 class Rental extends Model
 {
     protected $fillable = [
         'rental_number',
+        'user_id',
         'customer_name',
         'age',
         'field_area',
         'primary_address',
+        'usage_type',
+        'start_time',
         'notes',
         'delivery_notes',
         'equipment',
@@ -27,6 +31,11 @@ class Rental extends Model
         'rental_from' => 'date',
         'rental_to' => 'date',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public static function generateRentalNumber()
     {
