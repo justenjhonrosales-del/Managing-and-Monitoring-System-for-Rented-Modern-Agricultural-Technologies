@@ -102,11 +102,19 @@ class RentalController extends Controller
         // Calculate income metrics
         $today = now()->startOfDay();
         $thisMonth = now()->startOfMonth();
+        $thisYear = now()->startOfYear();
+        $weekAgo = now()->subDays(7)->startOfDay();
 
         $dailyIncome = Rental::where('status', 'completed')
             ->whereNotNull('total_amount')
             ->where('total_amount', '>', 0)
             ->whereBetween('updated_at', [$today, $today->copy()->endOfDay()])
+            ->sum('total_amount');
+
+        $weeklyIncome = Rental::where('status', 'completed')
+            ->whereNotNull('total_amount')
+            ->where('total_amount', '>', 0)
+            ->whereBetween('updated_at', [$weekAgo, now()])
             ->sum('total_amount');
 
         $monthlyIncome = Rental::where('status', 'completed')
@@ -115,12 +123,18 @@ class RentalController extends Controller
             ->whereBetween('updated_at', [$thisMonth, $thisMonth->copy()->endOfMonth()])
             ->sum('total_amount');
 
+        $yearlyIncome = Rental::where('status', 'completed')
+            ->whereNotNull('total_amount')
+            ->where('total_amount', '>', 0)
+            ->whereBetween('updated_at', [$thisYear, $thisYear->copy()->endOfYear()])
+            ->sum('total_amount');
+
         $totalIncome = Rental::where('status', 'completed')
             ->whereNotNull('total_amount')
             ->where('total_amount', '>', 0)
             ->sum('total_amount');
 
-        return view('admin.payments', compact('completedRentals', 'dailyIncome', 'monthlyIncome', 'totalIncome'));
+        return view('admin.payments', compact('completedRentals', 'dailyIncome', 'weeklyIncome', 'monthlyIncome', 'yearlyIncome', 'totalIncome'));
     }
 
     public function exportPaymentsPdf()

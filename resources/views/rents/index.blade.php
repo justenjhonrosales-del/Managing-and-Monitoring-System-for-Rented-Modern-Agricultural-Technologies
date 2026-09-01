@@ -11,6 +11,23 @@
         /* Rents page specific styles - scoped to .rents-page to avoid global changes */
         .rents-page { background: #f6f7f9; min-height: 100vh; padding: 28px 20px; font-family: 'Inter', sans-serif; color: #0f172a; }
         .rents-header { max-width: 1180px; margin: 0 auto 18px; }
+        .rents-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            color: #0f172a;
+            text-decoration: none;
+            font-weight: 700;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+        .rents-back-btn:hover {
+            background: #f3f4f6;
+        }
         .rents-title { font-size: 28px; font-weight: 800; margin: 6px 0 4px; color: #0b1220; }
         .rents-sub { color: #6b7280; margin-bottom: 12px; }
 
@@ -189,6 +206,7 @@
 
 <div class="rents-page">
     <header class="rents-header">
+        <a href="{{ route('rental') }}" class="rents-back-btn">← Back</a>
         <h1 class="rents-title">Staff Dashboard</h1>
         <div class="rents-sub"></div>
     </header>

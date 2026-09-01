@@ -853,10 +853,52 @@
                 <!-- Equipment Selection -->
                 <div class="equipment-grid">
                     @php
+                        $equipmentDefaults = [
+                            'Tractor' => 2,
+                            'Reaper or Thresher' => 2,
+                            'Kuliglig' => 2,
+                        ];
+
+                        $existingRentals = \App\Models\Rental::whereNotNull('rental_from')->get();
+                        $equipmentStats = [];
+
+                        foreach ($equipmentDefaults as $equipmentName => $totalUnits) {
+                            $pendingCount = $existingRentals->filter(function ($rental) use ($equipmentName) {
+                                $rentalEquipment = is_array($rental->equipment) ? $rental->equipment : json_decode($rental->equipment, true);
+                                $equipmentNames = collect($rentalEquipment ?? [])
+                                    ->pluck('name')
+                                    ->filter()
+                                    ->all();
+
+                                return in_array($equipmentName, $equipmentNames, true)
+                                    && strtolower((string) $rental->status) === 'pending';
+                            })->count();
+
+                            $equipmentStats[$equipmentName] = [
+                                'available' => max($totalUnits - $pendingCount, 0),
+                                'pending' => $pendingCount,
+                            ];
+                        }
+
                         $equipments = [
-                            ['name' => 'Tractor', 'image' => 'tractor.png', 'available' => 2],
-                            ['name' => 'Reaper or Thresher', 'image' => 'reaper or thresher.jpg', 'available' => 2],
-                            ['name' => 'Kuliglig', 'image' => 'kuliglig.jpg', 'available' => 2],
+                            [
+                                'name' => 'Tractor',
+                                'image' => 'tractor.png',
+                                'available' => $equipmentStats['Tractor']['available'],
+                                'pending' => $equipmentStats['Tractor']['pending'],
+                            ],
+                            [
+                                'name' => 'Reaper or Thresher',
+                                'image' => 'reaper or thresher.jpg',
+                                'available' => $equipmentStats['Reaper or Thresher']['available'],
+                                'pending' => $equipmentStats['Reaper or Thresher']['pending'],
+                            ],
+                            [
+                                'name' => 'Kuliglig',
+                                'image' => 'kuliglig.jpg',
+                                'available' => $equipmentStats['Kuliglig']['available'],
+                                'pending' => $equipmentStats['Kuliglig']['pending'],
+                            ],
                         ];
                     @endphp
 
@@ -874,7 +916,7 @@
                                     </div>
                                     <div class="equipment-status-item">
                                         <span class="equipment-status-label">Pending</span>
-                                        <span class="equipment-status-value">0</span>
+                                        <span class="equipment-status-value">{{ $equipment['pending'] }}</span>
                                     </div>
                                     <div class="equipment-status-item">
                                         <span class="equipment-status-label">Maintenance</span>

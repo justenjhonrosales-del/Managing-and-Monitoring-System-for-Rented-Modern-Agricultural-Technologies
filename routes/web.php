@@ -48,7 +48,7 @@ Route::get('/schedule', function () {
     $rentals = \App\Models\Rental::where('status', '!=', 'cancelled')
         ->whereNotNull('rental_from')
         ->orderBy('rental_from', 'asc')
-        ->orderByRaw("STR_TO_DATE(start_time, '%h:%i %p') ASC")
+        ->orderBy('start_time', 'asc')
         ->get();
     return view('schedule', compact('rentals'));
 })->name('staff.schedule');

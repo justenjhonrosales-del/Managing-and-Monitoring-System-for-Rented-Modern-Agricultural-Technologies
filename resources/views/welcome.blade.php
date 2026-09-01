@@ -809,6 +809,7 @@
                     <li><a href="#contact">Contact</a></li>
                     @if (session('welcome_dashboard_logged_in') && session('welcome_dashboard_role') === 'staff')
                         <li><a href="{{ route('staff.schedule') }}">Schedule</a></li>
+                        <li><a href="{{ route('rents.index') }}">Rents</a></li>
                     @endif
                 </ul>
 

@@ -586,7 +586,7 @@
                                 </td>
                                 <td>{{ $rental->created_at->format('M d, Y') }}</td>
                                 <td>
-                                    <button class="btn-update" onclick="openModal('{{ $rental->id }}', '{{ $rental->rental_number }}', '{{ $rental->customer_name }}', '{{ json_encode($rental->equipment) }}', '{{ $rental->rental_from }}', '{{ $rental->rental_to }}', '{{ $rental->rental_duration_hours }}', '{{ $rental->total_amount }}', '{{ $rental->status }}')">Update</button>
+                                  
                                     <form action="{{ route('rental.destroy', $rental->id) }}" method="POST" style="display: inline-block;" onsubmit="return confirm('Are you sure you want to delete this rental?');">
                                         @csrf
                                         @method('DELETE')

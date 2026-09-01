@@ -582,8 +582,8 @@
         <div class="equipment-tabs">
             <button class="equipment-tab active" data-filter="all">All Equipment</button>
             <button class="equipment-tab" data-filter="Tractor">Tractor</button>
-            <button class="equipment-tab" data-filter="Reaper or Thresher">Thresher</button>
-            <button class="equipment-tab" data-filter="Kuliglig">Kuliglik</button>
+            <button class="equipment-tab" data-filter="Thresher">Thresher</button>
+            <button class="equipment-tab" data-filter="Kuliglig">Kuliglig</button>
         </div>
 
         <!-- CALENDAR CONTROLS -->
@@ -633,11 +633,51 @@
         let currentDate = new Date();
         let activeFilter = 'all';
 
+        function formatDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function normalizeEquipmentName(value) {
+            if (!value) return 'Unknown';
+
+            if (Array.isArray(value)) {
+                const firstItem = value.find(item => item && (item.name || item.label || item.equipment));
+                if (firstItem) {
+                    return normalizeEquipmentName(firstItem);
+                }
+                return value[0] ? String(value[0]) : 'Unknown';
+            }
+
+            if (typeof value === 'object') {
+                return value.name || value.label || value.equipment || 'Unknown';
+            }
+
+            if (typeof value === 'string') {
+                const trimmed = value.trim();
+                if (!trimmed) return 'Unknown';
+
+                try {
+                    const parsed = JSON.parse(trimmed);
+                    if (parsed) return normalizeEquipmentName(parsed);
+                } catch (error) {
+                    // Keep the raw string if it is already an equipment name.
+                }
+
+                return trimmed;
+            }
+
+            return String(value);
+        }
+
         // Helper function to get equipment class
         function getEquipmentClass(equipment) {
-            if (equipment.includes('Tractor')) return 'tractor';
-            if (equipment.includes('Reaper') || equipment.includes('Thresher')) return 'thresher';
-            if (equipment.includes('Kuliglig')) return 'kuliglig';
+            const normalized = normalizeEquipmentName(equipment);
+            if (normalized.includes('Tractor')) return 'tractor';
+            if (normalized.includes('Reaper') || normalized.includes('Thresher')) return 'thresher';
+            if (normalized.includes('Kuliglig')) return 'kuliglig';
             return '';
         }
 
@@ -646,13 +686,13 @@
             const conflicts = {};
             rentalsData.forEach((rental, index) => {
                 if (!rental.rental_from) return;
-                
+
                 const dateStr = rental.rental_from;
                 const timeStr = rental.start_time || '';
-                const equipment = rental.equipment && rental.equipment.length > 0 ? rental.equipment[0].name : '';
-                
+                const equipment = normalizeEquipmentName(rental.equipment);
+
                 const key = `${dateStr}-${timeStr}-${equipment}`;
-                
+
                 if (!conflicts[key]) {
                     conflicts[key] = [];
                 }
@@ -665,10 +705,7 @@
         const conflicts = findConflicts();
 
         function getEquipmentName(rental) {
-            if (!rental.equipment || !Array.isArray(rental.equipment) || rental.equipment.length === 0) {
-                return 'Unknown';
-            }
-            return rental.equipment[0].name || 'Unknown';
+            return normalizeEquipmentName(rental && rental.equipment ? rental.equipment : 'Unknown');
         }
 
         function getStatusLabel(status) {
@@ -696,11 +733,12 @@
 
         // Filter rentals by date
         function getRentalsForDate(date) {
-            const dateStr = date.toISOString().split('T')[0];
+            const dateStr = formatDateKey(date);
             return rentalsData
                 .filter(rental => {
                     if (!rental.rental_from) return false;
-                    if (rental.rental_from !== dateStr) return false;
+                    const rentalDate = String(rental.rental_from).slice(0, 10);
+                    if (rentalDate !== dateStr) return false;
                     if (activeFilter === 'all') return true;
                     const equipment = getEquipmentName(rental);
                     return equipment === activeFilter;
@@ -925,17 +963,18 @@
         // Update summary cards
         function updateSummary() {
             const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
-            
+            const todayStr = formatDateKey(today);
+
             let todayCount = 0;
             let upcomingCount = 0;
             let conflictCount = 0;
-            
+
             rentalsData.forEach(rental => {
                 if (!rental.rental_from) return;
-                
-                const rentalDate = new Date(rental.rental_from);
-                if (rental.rental_from === todayStr) {
+
+                const rentalDate = new Date(`${rental.rental_from}T00:00:00`);
+                const rentalDateKey = formatDateKey(rentalDate);
+                if (rentalDateKey === todayStr) {
                     todayCount++;
                 } else if (rentalDate > today) {
                     upcomingCount++;
