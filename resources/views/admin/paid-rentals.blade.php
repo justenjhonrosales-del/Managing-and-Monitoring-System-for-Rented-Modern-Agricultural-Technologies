@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports - AgriRent Buguey</title>
+    <title>Paid Rentals - AgriRent Buguey</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -37,6 +37,7 @@
             background: var(--white);
         }
 
+        /* SIDEBAR */
         .sidebar {
             background: var(--primary-dark);
             padding: 25px 20px;
@@ -97,6 +98,7 @@
             color: var(--white);
         }
 
+        /* MAIN CONTENT */
         .main-content {
             grid-column: 2;
             padding: 30px;
@@ -108,7 +110,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
             padding-bottom: 20px;
             border-bottom: 1px solid #e0e0e0;
         }
@@ -185,6 +187,24 @@
 
         .dropdown-item.logout {
             color: #ef4444;
+        }
+
+        .dropdown-item.logout:hover {
+            background: #fee2e2;
+        }
+
+        /* ALERT */
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left-color: #28a745;
         }
 
         /* TABS */
@@ -275,6 +295,15 @@
             font-weight: 600;
         }
 
+        .equipment-tag {
+            display: inline;
+            background: none;
+            color: var(--text-dark);
+            padding: 0;
+            margin-right: 8px;
+            font-weight: 500;
+        }
+
         .btn-approved {
             background: #22c55e;
             color: var(--white);
@@ -285,28 +314,6 @@
             font-size: 0.85rem;
             font-weight: 600;
             opacity: 0.7;
-        }
-
-        .empty-state {
-            text-align: center;
-            color: #9ca3af;
-            padding: 40px;
-        }
-
-        .alert {
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
         }
 
         @media (max-width: 768px) {
@@ -333,14 +340,6 @@
                 padding-bottom: 100px;
             }
 
-            .equipment-tabs {
-                flex-wrap: wrap;
-            }
-
-            .search-container {
-                margin-bottom: 15px;
-            }
-
             .table-container {
                 overflow-x: scroll;
             }
@@ -363,7 +362,10 @@
                 <a href="{{ route('admin.rentals') }}" class="sidebar-item">
                     Rentals
                 </a>
-                <a href="{{ route('admin.reports') }}" class="sidebar-item active">
+                <a href="{{ route('admin.paid-rentals') }}" class="sidebar-item active">
+                    Paid Rentals
+                </a>
+                <a href="{{ route('admin.reports') }}" class="sidebar-item">
                     Reports
                 </a>
                 <a href="{{ route('admin.payments') }}" class="sidebar-item">
@@ -379,7 +381,7 @@
         <div class="main-content">
             <!-- HEADER -->
             <div class="header">
-                <h1>Reports</h1>
+                <h1>Paid Rentals</h1>
                 <div class="header-right">
                     <div class="admin-profile">
                         <span>{{ auth()->user()->name ?? 'Admin' }}</span>

@@ -41,6 +41,17 @@ Route::get('/admin/welcome', function () {
 })->name('admin.welcome');
 
 Route::get('/rental', [RentalController::class, 'index'])->name('rental');
+Route::get('/schedule', function () {
+    if (!session('welcome_dashboard_logged_in') || session('welcome_dashboard_role') !== 'staff') {
+        return redirect('/welcome-login');
+    }
+    $rentals = \App\Models\Rental::where('status', '!=', 'cancelled')
+        ->whereNotNull('rental_from')
+        ->orderBy('rental_from', 'asc')
+        ->orderByRaw("STR_TO_DATE(start_time, '%h:%i %p') ASC")
+        ->get();
+    return view('schedule', compact('rentals'));
+})->name('staff.schedule');
 Route::middleware('ensure.welcome.auth')->group(function () {
     Route::post('/rental', [RentalController::class, 'store'])->name('rental.store');
     Route::get('/rents', [RentalController::class, 'userIndex'])->name('rents.index');
@@ -66,6 +77,7 @@ Route::get('/admin/dashboard', function () {
 })->middleware(['is.admin'])->name('admin.dashboard');
 
 Route::get('/admin/rentals', [RentalController::class, 'manage'])->middleware(['is.admin'])->name('admin.rentals');
+Route::get('/admin/paid-rentals', [RentalController::class, 'paidRentals'])->middleware(['is.admin'])->name('admin.paid-rentals');
 Route::get('/admin/reports', [RentalController::class, 'reports'])->middleware(['is.admin'])->name('admin.reports');
 Route::get('/admin/payments', [RentalController::class, 'payments'])->middleware(['is.admin'])->name('admin.payments');
 Route::get('/admin/payments/export-pdf', [RentalController::class, 'exportPaymentsPdf'])->middleware(['is.admin'])->name('admin.payments.export');

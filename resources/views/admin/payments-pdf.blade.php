@@ -190,12 +190,12 @@
                     <div class="summary-card-value">₱{{ number_format($dailyIncome, 2) }}</div>
                 </div>
                 <div class="summary-card">
-                    <div class="summary-card-label">Monthly Income</div>
-                    <div class="summary-card-value">₱{{ number_format($monthlyIncome, 2) }}</div>
+                    <div class="summary-card-label">Weekly Income</div>
+                    <div class="summary-card-value">₱{{ number_format($weeklyIncome, 2) }}</div>
                 </div>
                 <div class="summary-card">
-                    <div class="summary-card-label">Total Income</div>
-                    <div class="summary-card-value">₱{{ number_format($totalIncome, 2) }}</div>
+                    <div class="summary-card-label">Yearly Income</div>
+                    <div class="summary-card-value">₱{{ number_format($yearlyIncome, 2) }}</div>
                 </div>
             </div>
         </div>
@@ -220,12 +220,12 @@
                                 <td>{{ $rental->rental_number }}</td>
                                 <td>{{ $rental->customer_name }}</td>
                                 <td>{{ $rental->updated_at->format('Y-m-d') }}</td>
-                                <td>₱{{ number_format($rental->total_amount, 2) }}</td>
+                                <td>₱{{ number_format($rental->payment_amount !== null && $rental->payment_amount > 0 ? $rental->payment_amount : $rental->total_amount, 2) }}</td>
                             </tr>
                         @endforeach
                         <tr class="total-row">
                             <td colspan="3" style="text-align: right;">TOTAL:</td>
-                            <td>₱{{ number_format($completedRentals->sum('total_amount'), 2) }}</td>
+                            <td>₱{{ number_format($completedRentals->sum(function($rental) { return $rental->payment_amount !== null && $rental->payment_amount > 0 ? $rental->payment_amount : $rental->total_amount; }), 2) }}</td>
                         </tr>
                     </tbody>
                 </table>

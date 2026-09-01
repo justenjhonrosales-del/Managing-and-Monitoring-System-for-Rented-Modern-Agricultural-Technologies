@@ -508,6 +508,9 @@
                 <a href="{{ route('admin.rentals') }}" class="sidebar-item active">
                     Rentals
                 </a>
+                <a href="{{ route('admin.paid-rentals') }}" class="sidebar-item">
+                    Paid Rentals
+                </a>
                 <a href="{{ route('admin.reports') }}" class="sidebar-item">
                     Reports
                 </a>

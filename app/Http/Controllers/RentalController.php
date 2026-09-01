@@ -23,6 +23,15 @@ class RentalController extends Controller
         return view('admin.rentals', compact('rentals'));
     }
 
+    public function paidRentals()
+    {
+        $rentals = Rental::where('status', 'paid')
+            ->orderBy('rental_from', 'asc')
+            ->orderByRaw("STR_TO_DATE(start_time, '%h:%i %p') ASC")
+            ->get();
+        return view('admin.paid-rentals', compact('rentals'));
+    }
+
     public function userIndex()
     {
         if (Auth::check()) {
@@ -280,7 +289,52 @@ class RentalController extends Controller
             return response()->json(['message' => 'Only pending rentals can be marked as paid.'], 422);
         }
 
-        $rental->update(['status' => 'paid']);
+        // Check if equipment is Reaper/Thresher by inspecting the rental's equipment JSON
+        $isReaperThresher = false;
+        if (is_array($rental->equipment) && count($rental->equipment) > 0) {
+            $equipmentName = $rental->equipment[0]['name'] ?? null;
+            if ($equipmentName === 'Reaper or Thresher') {
+                $isReaperThresher = true;
+            }
+        }
+
+        // For Reaper/Thresher, validate and require payment_amount
+        if ($isReaperThresher) {
+            $paymentAmount = $request->input('payment_amount');
+
+            // Validate payment_amount is provided
+            if (empty($paymentAmount)) {
+                return response()->json([
+                    'message' => 'Payment amount is required for Reaper/Thresher rentals.',
+                    'error' => 'payment_amount_required'
+                ], 422);
+            }
+
+            // Validate payment_amount is numeric
+            if (!is_numeric($paymentAmount)) {
+                return response()->json([
+                    'message' => 'Payment amount must be a valid number.',
+                    'error' => 'payment_amount_invalid'
+                ], 422);
+            }
+
+            // Validate payment_amount is greater than 0
+            if ((float) $paymentAmount <= 0) {
+                return response()->json([
+                    'message' => 'Payment amount must be greater than 0.',
+                    'error' => 'payment_amount_invalid'
+                ], 422);
+            }
+
+            // Update with payment_amount
+            $rental->update([
+                'status' => 'paid',
+                'payment_amount' => (float) $paymentAmount
+            ]);
+        } else {
+            // For other equipment (Tractor, Kuliglik), keep existing flow without payment_amount
+            $rental->update(['status' => 'paid']);
+        }
 
         return response()->json([
             'message' => 'Rental marked as paid successfully.',

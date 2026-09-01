@@ -25,6 +25,23 @@
         .rents-search { display:flex; align-items:center; gap:8px; }
         .rents-search input[type="search"] { padding:10px 12px; border-radius:10px; border:1px solid #e6e9ee; min-width:220px; }
         .rents-select, .rents-date { padding:10px 12px; border-radius:10px; border:1px solid #e6e9ee; background:#fff; }
+        .rents-payment-amount-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #0f172a;
+            background: #fff;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        .rents-payment-amount-input::-webkit-outer-spin-button,
+        .rents-payment-amount-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
         .rents-table-wrapper { overflow-x:auto; }
         table.rents-table { width:100%; border-collapse:collapse; min-width:1100px; }
@@ -281,7 +298,7 @@
                                 @if($rental->status === 'pending')
                                     <button type="button" class="rents-action-button rents-pay-confirm-button"
                                         data-rental-id="{{ $rental->id }}"
-                                        data-equipment="{{ $equipmentName }}"
+                                        data-equipment="{{ $rawEquipmentName }}"
                                         data-total-amount="{{ $rental->total_amount }}"
                                         data-rental-date="{{ $rental->rental_from ? $rental->rental_from->format('d/m/Y') : '-' }}"
                                         data-start-time="{{ $rental->start_time ?? '-' }}"
@@ -360,6 +377,7 @@
 
     (function(){
         const notification = document.getElementById('rentsNotification');
+        let isSubmittingPayment = false;
 
         function updateRowAfterPaid(rentalId) {
             const row = document.querySelector(`.rents-table-row[data-rental-id="${rentalId}"]`);
@@ -389,10 +407,67 @@
             event.preventDefault();
 
             const rentalId = button.dataset.rentalId;
+            const equipmentName = button.dataset.equipment;
 
             // Ensure Swal exists before using it
             if (typeof Swal === 'undefined') {
                 console.error('SweetAlert2 (Swal) is not loaded.');
+                return;
+            }
+
+            const isReaperThresher = equipmentName === 'Reaper or Thresher' || equipmentName === 'Thresher';
+
+            if (isReaperThresher) {
+                Swal.fire({
+                    title: 'Confirm Payment',
+                    html: `
+                        <div style="text-align: left;">
+                            <p>Are you sure you want to mark this rental as paid?</p>
+                            <div style="margin-top: 15px;">
+                                <label for="paymentAmountInput" style="display: block; font-weight: 600; margin-bottom: 8px; color: #333;">Payment Amount</label>
+                                <input type="number" id="paymentAmountInput" class="rents-payment-amount-input" placeholder="Enter amount" min="0.01" step="0.01" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                                <small style="display: block; margin-top: 5px; color: #666;">Enter the actual amount received from the customer</small>
+                            </div>
+                        </div>
+                    `,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Mark as Paid',
+                    cancelButtonText: 'Cancel',
+                    didOpen: (modal) => {
+                        const paymentInput = document.getElementById('paymentAmountInput');
+                        if (paymentInput) {
+                            paymentInput.focus();
+                        }
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const paymentAmountInput = document.getElementById('paymentAmountInput');
+                        const paymentAmount = paymentAmountInput?.value?.trim();
+
+                        if (!paymentAmount) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Payment Amount Required',
+                                text: 'Please enter a valid payment amount.',
+                                confirmButtonText: 'OK'
+                            });
+                            return;
+                        }
+
+                        if (isNaN(paymentAmount) || parseFloat(paymentAmount) <= 0) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Invalid Payment Amount',
+                                text: 'Payment amount must be a number greater than 0.',
+                                confirmButtonText: 'OK'
+                            });
+                            return;
+                        }
+
+                        handleMarkPaid(rentalId, paymentAmount);
+                    }
+                });
                 return;
             }
 
@@ -405,16 +480,21 @@
                 cancelButtonText: 'Cancel'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    handleMarkPaid(rentalId);
+                    handleMarkPaid(rentalId, null);
                 }
             });
         });
 
-        function handleMarkPaid(rentalId) {
-            if (!rentalId) return;
+        function handleMarkPaid(rentalId, paymentAmount) {
+            if (!rentalId || isSubmittingPayment) return;
+            isSubmittingPayment = true;
 
             const url = `/rents/${rentalId}/mark-paid`;
             const token = getCsrfToken();
+
+            const requestBody = paymentAmount !== null && paymentAmount !== undefined ?
+                { payment_amount: parseFloat(paymentAmount) } :
+                {};
 
             fetch(url, {
                 method: 'PATCH',
@@ -424,7 +504,7 @@
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': token,
                 },
-                body: JSON.stringify({}),
+                body: JSON.stringify(requestBody),
             })
                 .then(response => response.json().then(data => ({status: response.status, body: data})))
                 .then(({status, body}) => {
@@ -440,7 +520,7 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Payment failed',
-                            text: 'Unable to mark this rental as paid. Please try again.'
+                            text: body.message || 'Unable to mark this rental as paid. Please try again.'
                         });
                     }
                 })
@@ -450,6 +530,9 @@
                         title: 'Payment failed',
                         text: 'Unable to mark this rental as paid. Please try again.'
                     });
+                })
+                .finally(() => {
+                    isSubmittingPayment = false;
                 });
         }
 

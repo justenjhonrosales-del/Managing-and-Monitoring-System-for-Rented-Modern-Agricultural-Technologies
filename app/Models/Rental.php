@@ -24,6 +24,7 @@ class Rental extends Model
         'rental_to',
         'total_amount',
         'rental_duration_hours',
+        'payment_amount',
     ];
 
     protected $casts = [

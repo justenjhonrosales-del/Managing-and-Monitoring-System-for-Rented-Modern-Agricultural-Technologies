@@ -406,16 +406,16 @@
 
                 <div class="summary-card">
                     <div class="summary-card-content">
-                        <h3>Monthly Income</h3>
-                        <div class="summary-card-value">₱{{ number_format($monthlyIncome, 2) }}</div>
+                        <h3>Weekly Income</h3>
+                        <div class="summary-card-value">₱{{ number_format($weeklyIncome, 2) }}</div>
                     </div>
                     
                 </div>
 
                 <div class="summary-card">
                     <div class="summary-card-content">
-                        <h3>Total Income</h3>
-                        <div class="summary-card-value">₱{{ number_format($totalIncome, 2) }}</div>
+                        <h3>Yearly Income</h3>
+                        <div class="summary-card-value">₱{{ number_format($yearlyIncome, 2) }}</div>
                     </div>
                     
                 </div>
@@ -483,7 +483,7 @@
                                 <td><strong>{{ $rental->rental_number }}</strong></td>
                                 <td>{{ $rental->customer_name }}</td>
                                 <td>{{ $rental->updated_at->format('Y-m-d') }}</td>
-                                <td><strong>₱{{ number_format($rental->total_amount, 2) }}</strong></td>
+                                <td><strong>₱{{ number_format($rental->payment_amount !== null && $rental->payment_amount > 0 ? $rental->payment_amount : $rental->total_amount, 2) }}</strong></td>
                             </tr>
                         @empty
                             <tr>
