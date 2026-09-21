@@ -10,7 +10,7 @@
     <style>
         /* Rents page specific styles - scoped to .rents-page to avoid global changes */
         .rents-page { background: #f6f7f9; min-height: 100vh; padding: 28px 20px; font-family: 'Inter', sans-serif; color: #0f172a; }
-        .rents-header { max-width: 1180px; margin: 0 auto 18px; }
+        .rents-header { width: 100%; margin: 0 auto 18px; }
         .rents-back-btn {
             display: inline-flex;
             align-items: center;
@@ -31,7 +31,7 @@
         .rents-title { font-size: 28px; font-weight: 800; margin: 6px 0 4px; color: #0b1220; }
         .rents-sub { color: #6b7280; margin-bottom: 12px; }
 
-        .rents-container { max-width: 1180px; margin: 0 auto; background: #fff; border-radius: 14px; padding: 26px; box-shadow: 0 6px 18px rgba(12, 18, 31, 0.04); border: 1px solid rgba(15,23,42,0.04); }
+        .rents-container { width: 98%; margin: 0 auto; background: #fff; border-radius: 14px; padding: 26px; box-shadow: 0 6px 18px rgba(12, 18, 31, 0.04); border: 1px solid rgba(15,23,42,0.04); }
 
         .rents-top { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 18px; }
         .rents-tabs { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }

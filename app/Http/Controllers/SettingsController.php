@@ -140,6 +140,32 @@ class SettingsController extends Controller
         return back()->with('success', 'Password updated successfully!');
     }
 
+    public function updateStaffPassword(Request $request)
+    {
+        $validated = $request->validateWithBag('staffPassword', [
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[a-zA-Z\d@$!%*?&]+$/',
+        ], [
+            'new_password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character.',
+        ]);
+
+        $user = User::find(session('welcome_dashboard_user_id'));
+
+        if (!$user || $user->role !== 'staff') {
+            return redirect()->route('welcome.login.show');
+        }
+
+        if (!Hash::check($validated['current_password'], $user->password)) {
+            return back()->withErrors([
+                'current_password' => 'The current password is incorrect.',
+            ], 'staffPassword');
+        }
+
+        $user->update(['password' => Hash::make($validated['new_password'])]);
+
+        return back()->with('staff_password_changed', 'Password changed successfully.');
+    }
+
     /**
      * Toggle equipment auto-mark unavailable setting
      */

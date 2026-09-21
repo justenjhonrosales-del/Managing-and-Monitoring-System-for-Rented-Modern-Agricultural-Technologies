@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/welcome-login', [WelcomeLoginController::class, 'showLoginForm'])->name('welcome.login.show');
 Route::post('/welcome-login', [WelcomeLoginController::class, 'login'])->name('welcome.login');
+Route::view('/about', 'about')->name('about');
 Route::get('/welcome-logout', function () {
-    session()->forget(['welcome_dashboard_logged_in', 'welcome_dashboard_role']);
+    session()->forget(['welcome_dashboard_logged_in', 'welcome_dashboard_role', 'welcome_dashboard_user_id']);
     session()->regenerate();
     return redirect()->route('welcome.login.show');
 })->name('welcome.logout');
@@ -24,7 +25,7 @@ Route::get('/', function () {
     }
 
     return view('welcome');
-});
+})->name('staff.welcome');
 
 Route::get('/admin/welcome', function () {
     if (!session('welcome_dashboard_logged_in') || session('welcome_dashboard_role') !== 'admin') {
@@ -57,6 +58,9 @@ Route::middleware('ensure.welcome.auth')->group(function () {
     Route::get('/rents', [RentalController::class, 'userIndex'])->name('rents.index');
     Route::get('/rents/{id}', [RentalController::class, 'userShow'])->name('rents.show');
 });
+Route::post('/staff/change-password', [SettingsController::class, 'updateStaffPassword'])
+    ->middleware(['ensure.welcome.staff'])
+    ->name('staff.password.update');
 Route::patch('/rents/{rental}/mark-paid', [RentalController::class, 'markPaid'])->name('rents.markPaid');
 Route::post('/rental/check-duplicate-name', [RentalController::class, 'checkDuplicateName'])->name('rental.checkDuplicateName');
 

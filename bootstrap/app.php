@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'is.admin' => \App\Http\Middleware\IsAdmin::class,
             'ensure.welcome.auth' => \App\Http\Middleware\EnsureWelcomeAuthenticated::class,
+            'ensure.welcome.staff' => \App\Http\Middleware\EnsureWelcomeStaff::class,
         ]);
         
         $middleware->web([

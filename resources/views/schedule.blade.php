@@ -538,25 +538,29 @@
     <!-- HEADER -->
     <header>
         <nav>
-            <div class="nav-logo">
-                <h3>Municipality Of Buguey</h3>
-                <img src="{{ asset('images/buguey-logo.png') }}" alt="Municipality Logo">
-            </div>
-
             <ul class="nav-links">
-                <li><a href="/">Home</a></li>
-                <li><a href="/#about">About</a></li>
-                <li><a href="/#services">Services</a></li>
-                <li><a href="/#process">How It Works</a></li>
-                <li><a href="/#contact">Contact</a></li>
-                <li><a href="{{ route('staff.schedule') }}" style="color: var(--primary-color); font-weight: 600;">Schedule</a></li>
-            </ul>
+                     <ul class="nav-links">
+                                   <li><a href="{{ route('staff.welcome') }}">Home</a></li>
+                      <li><a href="{{ route('rents.index') }}">Rents</a></li>
+                      <li><a href="{{ route('staff.schedule') }}">Schedule</a></li>
+                    <li><a href="{{ route('about') }}">About</a></li>
+                   
+                    @if (session('welcome_dashboard_logged_in') && session('welcome_dashboard_role') === 'staff')
+                        <li><button type="button" class="nav-settings" id="openSettingsModal">Settings</button></li>
+                    @endif
+                </ul>
 
-            <div class="nav-right">
-                <a href="{{ route('welcome.logout') }}" class="btn-logout">Logout</a>
-            </div>
-        </nav>
+                <div class="nav-right">
+                    @if (session('welcome_dashboard_logged_in'))
+                        
+                    @else
+                        <a href="{{ route('welcome.login.show') }}" class="btn-login">Login</a>
+                    @endif
+                </div>
+            </nav>
     </header>
+
+            @include('partials.staff-settings-modal')
 
     <!-- MAIN CONTENT -->
     <div class="container">
