@@ -119,6 +119,32 @@
             color: var(--text-dark);
         }
 
+        .reports-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 20px;
+            padding: 10px 14px;
+            border: 1px solid var(--primary-color);
+            border-radius: 6px;
+            color: #fff;
+            background: var(--primary-color);
+            font: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .reports-download:hover {
+            background: var(--primary-dark);
+        }
+
+        .reports-download svg {
+            width: 16px;
+            height: 16px;
+        }
+
         .header-right {
             display: flex;
             align-items: center;
@@ -346,34 +372,11 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <a href="#" class="sidebar-logo">
-                <img src="{{ asset('images/buguey-logo.png') }}" alt="Buguey Logo">
-                FARMERS EQUIPMENT RENTAL
-            </a>
-
-            <div class="sidebar-menu">
-                <a href="{{ route('admin.dashboard') }}" class="sidebar-item">
-                    Dashboard
-                </a>
-                <a href="{{ route('admin.rentals') }}" class="sidebar-item">
-                    Rentals
-                </a>
-                <a href="{{ route('admin.reports') }}" class="sidebar-item active">
-                    Reports
-                </a>
-                <a href="{{ route('admin.payments') }}" class="sidebar-item">
-                    Payment
-                </a>
-                <a href="{{ route('admin.settings') }}" class="sidebar-item">
-                    Settings
-                </a>
-            </div>
-        </div>
+        @include('admin.partials.sidebar')
 
         <!-- MAIN CONTENT -->
         <div class="main-content">
@@ -381,6 +384,10 @@
             <div class="header">
                 <h1>Reports</h1>
                 <div class="header-right">
+                    <a class="reports-download" href="{{ route('admin.reports.export') }}">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v4h16v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                         1 month record pdf
+                    </a>
                     <div class="admin-profile">
                         <span>{{ auth()->user()->name ?? 'Admin' }}</span>
                         <div class="admin-avatar" onclick="toggleDropdown()">

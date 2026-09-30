@@ -24,7 +24,9 @@
         body {
             font-family: 'DM Sans', 'Segoe UI', Roboto, sans-serif;
             
-           background-color:var(--white);
+                 background-image: url('../images/background.png');
+                 background-repeat: no-repeat;
+                 background-size: cover;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -165,7 +167,7 @@
 <body>
     <div class="login-container">
         <div class="login-header">
-            <div class="login-logo">AgriTech</div>
+            <div class="login-logo">CAMIA</div>
             <div class="login-title">Login</div>
             <div class="login-subtitle">Enter your account credentials to continue</div>
         </div>

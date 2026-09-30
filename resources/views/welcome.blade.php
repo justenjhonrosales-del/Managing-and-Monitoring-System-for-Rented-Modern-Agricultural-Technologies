@@ -803,7 +803,7 @@
 
                 <ul class="nav-links">
                     <li><a href="#hero">Home</a></li>
-                      <li><a href="{{ route('rents.index') }}">Rents</a></li>
+                      <li><a href="{{ route('rents.index') }}">Payments</a></li>
                       <li><a href="{{ route('staff.schedule') }}">Schedule</a></li>
                     <li><a href="{{ route('about') }}">About</a></li>
                    
@@ -837,42 +837,8 @@
             </div>
         </section>
 
-        <!-- =============================================
-             ABOUT SECTION — REDESIGNED
-             ============================================= -->
-        <section id="about">
-            <div class="container">
-                <div class="about-header">
-                    <h2>ABOUT THE SYSTEM</h2>
-                    
-                </div>
+     
 
-                <div class="about-grid-three">
-                    <!-- Column 1 -->
-                    <div class="about-col">
-                        <h3>Our Roots & Community Focus</h3>
-                        <p>Agriculture is the primary source of income in Buguey, Cagayan. Our platform's vision is to fully modernize the agricultural technology rental process, supporting local farmers with digital tools for better harvests.</p>
-                    </div>
-
-                    <!-- Column 2 -->
-                    <div class="about-col">
-                        <h3>100% Digitalized Process</h3>
-                        <p>Eliminating paper-based rental records, miscommunication, and delays. Features zero-paper files, enhancing transparency and improving scheduling with real-time system updates for all stakeholders.</p>
-                    </div>
-
-                    <!-- Column 3 -->
-                    <div class="about-col">
-                        <h3>Key System Features</h3>
-                        <ul class="about-features-list">
-                            <li>Coverage: serving the Buguey community</li>
-                            <li>Centralized digital record-keeping</li>
-                            <li>Real-time availability tracking</li>
-                            <li>Transparent stakeholder logs</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
 
         <!-- Services Section -->
         <section id="services" class="bg-light">

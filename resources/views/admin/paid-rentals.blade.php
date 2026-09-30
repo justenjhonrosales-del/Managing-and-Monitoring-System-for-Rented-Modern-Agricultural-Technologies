@@ -304,18 +304,6 @@
             font-weight: 500;
         }
 
-        .btn-approved {
-            background: #22c55e;
-            color: var(--white);
-            padding: 6px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: not-allowed;
-            font-size: 0.85rem;
-            font-weight: 600;
-            opacity: 0.7;
-        }
-
         @media (max-width: 768px) {
             .dashboard-container {
                 grid-template-columns: 1fr;
@@ -345,37 +333,11 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <a href="#" class="sidebar-logo">
-                <img src="{{ asset('images/buguey-logo.png') }}" alt="Buguey Logo">
-                FARMERS EQUIPMENT RENTAL
-            </a>
-
-            <div class="sidebar-menu">
-                <a href="{{ route('admin.dashboard') }}" class="sidebar-item">
-                    Dashboard
-                </a>
-                <a href="{{ route('admin.rentals') }}" class="sidebar-item">
-                    Rentals
-                </a>
-                <a href="{{ route('admin.paid-rentals') }}" class="sidebar-item active">
-                    Paid Rentals
-                </a>
-                <a href="{{ route('admin.reports') }}" class="sidebar-item">
-                    Reports
-                </a>
-                <a href="{{ route('admin.payments') }}" class="sidebar-item">
-                    Payment
-                </a>
-                <a href="{{ route('admin.settings') }}" class="sidebar-item">
-                    Settings
-                </a>
-            </div>
-        </div>
+        @include('admin.partials.sidebar')
 
         <!-- MAIN CONTENT -->
         <div class="main-content">
@@ -436,7 +398,6 @@
                             <th>Start Time</th>
                             <th>Rental Price</th>
                             <th>Status</th>
-                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -490,11 +451,10 @@
                                     {{ $displayPrice }}
                                 </td>
                                 <td><span class="status-paid">Paid</span></td>
-                                <td><button type="button" class="btn-approved" disabled>Approved</button></td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="12" style="text-align: center; color: #9ca3af; padding: 40px;">No paid rentals found</td>
+                                <td colspan="11" style="text-align: center; color: #9ca3af; padding: 40px;">No paid rentals found</td>
                             </tr>
                         @endforelse
                     </tbody>

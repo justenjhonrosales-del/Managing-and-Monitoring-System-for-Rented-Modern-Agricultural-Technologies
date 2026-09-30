@@ -32,4 +32,25 @@ class AdminAccessTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_new_admin_destinations_render_with_active_navigation(): void
+    {
+        session([
+            'welcome_dashboard_logged_in' => true,
+            'welcome_dashboard_role' => 'admin',
+        ]);
+
+        foreach ([
+            'admin.equipment' => 'Equipment',
+            'admin.customers' => 'Customers',
+            'admin.change-password' => 'Change Password',
+        ] as $routeName => $title) {
+            $response = $this->get(route($routeName));
+
+            $response->assertOk()
+                ->assertSee('<h1>'.$title.'</h1>', false)
+                ->assertSee('class="admin-sidebar-link is-active"', false)
+                ->assertSee('aria-current="page"', false);
+        }
+    }
 }

@@ -6,28 +6,27 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Rents - AgriRent Buguey</title>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Rents page specific styles - scoped to .rents-page to avoid global changes */
-        .rents-page { background: #f6f7f9; min-height: 100vh; padding: 28px 20px; font-family: 'Inter', sans-serif; color: #0f172a; }
-        .rents-header { width: 100%; margin: 0 auto 18px; }
-        .rents-back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            border-radius: 10px;
-            border: 1px solid #d1d5db;
-            background: #fff;
-            color: #0f172a;
-            text-decoration: none;
-            font-weight: 700;
-            margin-bottom: 12px;
-            transition: all 0.2s ease;
-        }
-        .rents-back-btn:hover {
-            background: #f3f4f6;
-        }
+        body { font-family: 'DM Sans', 'Segoe UI', Roboto, sans-serif; }
+        .rents-page { background: #f6f7f9; min-height: 100vh; padding: 28px 20px; color: #0f172a; }
+        .rents-site-header { background-color: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 1000; }
+        .rents-site-header .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        .rents-site-header nav { display: flex; align-items: center; justify-content: center; height: 72px; gap: 40px; position: relative; }
+        .rents-site-header .nav-logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; order: -1; margin-right: auto; flex-direction: row-reverse; margin-left: -2rem; }
+        .rents-site-header .nav-logo h3 { font-family: 'Poppins', sans-serif; font-size: 1rem; font-weight: 600; color: #000; margin: 0 0 0 2rem; white-space: nowrap; }
+        .rents-site-header .nav-logo img { width: 50px; height: 50px; object-fit: contain; flex-shrink: 0; }
+        .rents-site-header .nav-links { list-style: none; display: flex; gap: 32px; align-items: center; justify-content: center; flex-shrink: 0; margin: 0; padding: 0; }
+        .rents-site-header .nav-links a { text-decoration: none; color: #000; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.02em; transition: color 0.2s; position: relative; }
+        .rents-site-header .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: #2e7d32; transition: width 0.25s; }
+        .rents-site-header .nav-links a:hover { color: #2e7d32; }
+        .rents-site-header .nav-links a:hover::after { width: 100%; }
+        .rents-site-header .nav-right { display: flex; align-items: center; flex-shrink: 0; margin-left: auto; order: 1; }
+        .rents-site-header .btn-login { background: #2e7d32; color: #fff; padding: 9px 22px; border-radius: 50px; font-size: 0.875rem; font-weight: 600; text-decoration: none; letter-spacing: 0.02em; transition: background 0.2s, transform 0.2s; white-space: nowrap; }
+        .rents-site-header .btn-login:hover { background: #1b5e20; transform: translateY(-1px); }
+        @media (max-width: 900px) { .rents-site-header .nav-links { display: none; } }
         .rents-title { font-size: 28px; font-weight: 800; margin: 6px 0 4px; color: #0b1220; }
         .rents-sub { color: #6b7280; margin-bottom: 12px; }
 
@@ -204,12 +203,42 @@
 </head>
 <body>
 
+<header class="rents-site-header">
+    <div class="container">
+        <nav>
+            <div class="nav-logo">
+                <h3>CAMIA</h3>
+                <img src="{{ asset('images/buguey-logo.png') }}" alt="Municipality Logo">
+            </div>
+
+            <ul class="nav-links">
+                <li><a href="{{ route('staff.welcome') }}">Home</a></li>
+                <li><a href="{{ route('rents.index') }}">Payments</a></li>
+                <li><a href="{{ route('staff.schedule') }}">Schedule</a></li>
+                <li><a href="{{ route('about') }}">About</a></li>
+                @if (session('welcome_dashboard_logged_in') && session('welcome_dashboard_role') === 'staff')
+                    <li><button type="button" class="nav-settings" id="openSettingsModal">Settings</button></li>
+                @endif
+            </ul>
+
+            <div class="nav-right">
+                @if (session('welcome_dashboard_logged_in'))
+                    <a href="{{ route('welcome.logout') }}" class="btn-login">Logout</a>
+                @else
+                    <a href="{{ route('welcome.login.show') }}" class="btn-login">Login</a>
+                @endif
+            </div>
+        </nav>
+    </div>
+</header>
+
+@include('partials.staff-settings-modal')
+
 <div class="rents-page">
-    <header class="rents-header">
-        <a href="{{ route('rental') }}" class="rents-back-btn">← Back</a>
+    <div class="rents-header">
         <h1 class="rents-title">Staff Dashboard</h1>
         <div class="rents-sub"></div>
-    </header>
+    </div>
 
     <section class="rents-container">
         <div class="rents-top">

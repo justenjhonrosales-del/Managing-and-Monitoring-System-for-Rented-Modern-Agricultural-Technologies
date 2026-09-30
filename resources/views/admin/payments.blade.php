@@ -350,34 +350,11 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <a href="#" class="sidebar-logo">
-                <img src="{{ asset('images/buguey-logo.png') }}" alt="Buguey Logo">
-                FARMERS EQUIPMENT RENTAL
-            </a>
-
-            <div class="sidebar-menu">
-                <a href="{{ route('admin.dashboard') }}" class="sidebar-item">
-                    Dashboard
-                </a>
-                <a href="{{ route('admin.rentals') }}" class="sidebar-item">
-                    Rentals
-                </a>
-                <a href="{{ route('admin.reports') }}" class="sidebar-item">
-                    Reports
-                </a>
-                <a href="{{ route('admin.payments') }}" class="sidebar-item active">
-                    Payment
-                </a>
-                <a href="{{ route('admin.settings') }}" class="sidebar-item">
-                    Settings
-                </a>
-            </div>
-        </div>
+        @include('admin.partials.sidebar')
 
         <!-- MAIN CONTENT -->
         <div class="main-content">
@@ -398,16 +375,16 @@
             <div class="summary-cards">
                 <div class="summary-card">
                     <div class="summary-card-content">
-                        <h3>Daily Income</h3>
-                        <div class="summary-card-value">₱{{ number_format($dailyIncome, 2) }}</div>
+                        <h3>Weekly Income</h3>
+                        <div class="summary-card-value">₱{{ number_format($weeklyIncome, 2) }}</div>
                     </div>
                     
                 </div>
 
                 <div class="summary-card">
                     <div class="summary-card-content">
-                        <h3>Weekly Income</h3>
-                        <div class="summary-card-value">₱{{ number_format($weeklyIncome, 2) }}</div>
+                        <h3>Monthly Income</h3>
+                        <div class="summary-card-value">₱{{ number_format($monthlyIncome, 2) }}</div>
                     </div>
                     
                 </div>
@@ -421,43 +398,10 @@
                 </div>
             </div>
 
-            <!-- PAYMENTS TABLE -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 class="section-title" style="margin: 0;">Payment Transactions</h2>
-                <a href="{{ route('admin.payments.export') }}" style="display: inline-block; background: #2e7d32; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.background='#1b5e20'" onmouseout="this.style.background='#2e7d32'">
-                     Download PDF
-                </a>
-            </div>
-
-            <div class="filter-bar">
-                <div class="filter-box">
-                    <label for="filterMonth">Filter by Month:</label>
-                    <select id="filterMonth">
-                        <option value="">All Months</option>
-                        <option value="01">January</option>
-                        <option value="02">February</option>
-                        <option value="03">March</option>
-                        <option value="04">April</option>
-                        <option value="05">May</option>
-                        <option value="06">June</option>
-                        <option value="07">July</option>
-                        <option value="08">August</option>
-                        <option value="09">September</option>
-                        <option value="10">October</option>
-                        <option value="11">November</option>
-                        <option value="12">December</option>
-                    </select>
-                </div>
-                <div class="filter-box">
-                    <label for="searchPayment">Search:</label>
-                    <input type="text" id="searchPayment" placeholder="Search by customer name...">
-                </div>
-            </div>
-
             <div class="table-wrapper">
                 <div class="table-header">
                     <div class="pagination-info">
-                        Showing <span id="pageCount">1</span> to <span id="showingCount">10</span> of <span id="totalCount">{{ $completedRentals->count() }}</span> Entries
+                        Showing <span id="pageCount">1</span> to <span id="showingCount">10</span> of <span id="totalCount">{{ $paidRentals->count() }}</span> Entries
                     </div>
                     <div class="pagination">
                         <button onclick="previousPage()">&laquo;</button>
@@ -470,24 +414,27 @@
                     <thead>
                         <tr>
                             <th><input type="checkbox"></th>
-                            <th>ID</th>
                             <th>Customer Name</th>
-                            <th>Date Completed</th>
+                            <th>Address</th>
                             <th>Payment Amount</th>
                         </tr>
                     </thead>
                     <tbody id="paymentTableBody">
-                        @forelse($completedRentals as $rental)
-                            <tr class="payment-row" data-customer="{{ strtolower($rental->customer_name) }}">
+                        @forelse($paidRentals as $rental)
+                            @php
+                                $paymentPrice = $rental->payment_amount !== null && $rental->payment_amount > 0
+                                    ? $rental->payment_amount
+                                    : $rental->total_amount;
+                            @endphp
+                            <tr class="payment-row">
                                 <td><input type="checkbox"></td>
-                                <td><strong>{{ $rental->rental_number }}</strong></td>
                                 <td>{{ $rental->customer_name }}</td>
-                                <td>{{ $rental->updated_at->format('Y-m-d') }}</td>
-                                <td><strong>₱{{ number_format($rental->payment_amount !== null && $rental->payment_amount > 0 ? $rental->payment_amount : $rental->total_amount, 2) }}</strong></td>
+                                <td>{{ $rental->primary_address }}</td>
+                                <td><strong>₱{{ number_format($paymentPrice, 2) }}</strong></td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="empty-state">No payment records found</td>
+                                <td colspan="4" class="empty-state">No payment records found</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -497,21 +444,6 @@
     </div>
 
     <script>
-        const searchInput = document.getElementById('searchPayment');
-        const paymentRows = document.querySelectorAll('.payment-row');
-
-        searchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            paymentRows.forEach(row => {
-                const customerName = row.getAttribute('data-customer');
-                if (customerName.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        });
-
         function previousPage() {
             console.log('Previous page');
         }

@@ -1,0 +1,216 @@
+.dashboard-container {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    position: fixed;
+    z-index: 1100;
+    inset: 0 auto 0 0;
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    height: 100vh;
+    padding: 18px 12px 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    color: #f4fff8;
+    background: linear-gradient(180deg, #073b2a 0%, #06452f 100%);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+}
+
+.admin-sidebar::after {
+    position: absolute;
+    z-index: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 160px;
+    content: "";
+    pointer-events: none;
+    background-image: linear-gradient(0deg, rgba(3, 51, 34, 0.15), #06452f 98%), url("/images/tractor-1.png");
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    background-size: cover;
+    opacity: 0.2;
+}
+
+.admin-sidebar-brand,
+.admin-sidebar-nav {
+    position: relative;
+    z-index: 1;
+}
+
+.admin-sidebar-brand {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    min-height: 68px;
+    margin: 0 5px 14px;
+    color: #f7fff9;
+    text-decoration: none;
+}
+
+.admin-sidebar-brand > img {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    margin-top: 2px;
+    object-fit: contain;
+}
+
+.admin-sidebar-brand-copy {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-sidebar-brand-copy strong {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 25px;
+    font-weight: 700;
+    line-height: 1;
+     margin-left: 1.1rem;
+}
+
+.admin-sidebar-brand-copy small {
+    color: rgba(238, 250, 241, 0.72);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9px;
+    font-weight: 400;
+    line-height: 1.45;
+}
+
+.admin-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 38px;
+    padding: 8px 10px;
+    color: rgba(246, 255, 249, 0.86);
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: background-color 140ms ease, color 140ms ease;
+}
+
+.admin-sidebar-link:hover,
+.admin-sidebar-link:focus-visible {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.admin-sidebar-link.is-active {
+    color: #fff;
+    background: #319555;
+}
+
+.admin-sidebar-icon {
+    flex: 0 0 17px;
+    width: 17px;
+    height: 17px;
+    color: #f5fff7;
+}
+
+.admin-sidebar-image-icon {
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+
+.admin-sidebar-link span {
+    min-width: 0;
+}
+
+.main-content {
+    grid-column: 2;
+    min-width: 0;
+}
+
+.admin-placeholder-main {
+    min-height: 100vh;
+    padding: 30px;
+    color: #1a1a1a;
+    font-family: 'DM Sans', sans-serif;
+    background: #fff;
+}
+
+.admin-placeholder-main h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .admin-sidebar {
+        inset: auto 0 0;
+        width: 100%;
+        height: 76px;
+        padding: 7px 8px;
+        overflow: hidden;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-right: 0;
+    }
+
+    .admin-sidebar::after,
+    .admin-sidebar-brand {
+        display: none;
+    }
+
+    .admin-sidebar-nav {
+        flex-direction: row;
+        align-items: center;
+        gap: 4px;
+        width: 100%;
+        height: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+    }
+
+    .admin-sidebar-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .admin-sidebar-link {
+        flex: 0 0 82px;
+        flex-direction: column;
+        justify-content: center;
+        gap: 4px;
+        min-height: 60px;
+        padding: 5px 3px;
+        font-size: 9px;
+        text-align: center;
+    }
+
+    .admin-sidebar-icon {
+        flex-basis: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    .main-content {
+        grid-column: 1;
+        padding-bottom: 96px;
+    }
+
+    .admin-placeholder-main {
+        min-height: calc(100vh - 76px);
+        padding: 22px 16px 96px;
+    }
+}

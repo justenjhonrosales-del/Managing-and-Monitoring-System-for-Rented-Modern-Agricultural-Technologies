@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminEquipmentController;
 use App\Http\Controllers\RentalController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\WelcomeLoginController;
@@ -55,6 +56,7 @@ Route::get('/schedule', function () {
 })->name('staff.schedule');
 Route::middleware('ensure.welcome.auth')->group(function () {
     Route::post('/rental', [RentalController::class, 'store'])->name('rental.store');
+    Route::get('/rental/availability', [RentalController::class, 'availability'])->name('rental.availability');
     Route::get('/rents', [RentalController::class, 'userIndex'])->name('rents.index');
     Route::get('/rents/{id}', [RentalController::class, 'userShow'])->name('rents.show');
 });
@@ -83,10 +85,16 @@ Route::get('/admin/dashboard', function () {
 Route::get('/admin/rentals', [RentalController::class, 'manage'])->middleware(['is.admin'])->name('admin.rentals');
 Route::get('/admin/paid-rentals', [RentalController::class, 'paidRentals'])->middleware(['is.admin'])->name('admin.paid-rentals');
 Route::get('/admin/reports', [RentalController::class, 'reports'])->middleware(['is.admin'])->name('admin.reports');
+Route::get('/admin/reports/export-pdf', [RentalController::class, 'exportReportsPdf'])->middleware(['is.admin'])->name('admin.reports.export');
 Route::get('/admin/payments', [RentalController::class, 'payments'])->middleware(['is.admin'])->name('admin.payments');
 Route::get('/admin/payments/export-pdf', [RentalController::class, 'exportPaymentsPdf'])->middleware(['is.admin'])->name('admin.payments.export');
 Route::patch('/admin/rentals/{id}/status', [RentalController::class, 'updateStatus'])->middleware(['is.admin'])->name('rental.updateStatus');
 Route::delete('/admin/rentals/{id}', [RentalController::class, 'destroy'])->middleware(['is.admin'])->name('rental.destroy');
+Route::get('/admin/equipment', [AdminEquipmentController::class, 'index'])->middleware(['is.admin'])->name('admin.equipment');
+Route::put('/admin/equipment', [AdminEquipmentController::class, 'update'])->middleware(['is.admin'])->name('admin.equipment.update');
+Route::put('/admin/equipment/{equipmentSetting}/availability', [AdminEquipmentController::class, 'updateAvailability'])->middleware(['is.admin'])->name('admin.equipment.availability');
+Route::view('/admin/customers', 'admin.placeholder', ['pageTitle' => 'Customers'])->middleware(['is.admin'])->name('admin.customers');
+Route::view('/admin/change-password', 'admin.placeholder', ['pageTitle' => 'Change Password'])->middleware(['is.admin'])->name('admin.change-password');
 
 // Settings routes
 Route::get('/admin/settings', [SettingsController::class, 'index'])->middleware(['is.admin'])->name('admin.settings');

@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class EquipmentSetting extends Model
 {
     protected $table = 'equipment_settings';
-    protected $fillable = ['equipment_name', 'status', 'is_available', 'notes'];
+    protected $fillable = ['equipment_name', 'status', 'is_available', 'notes', 'total_quantity', 'default_hours', 'hourly_rate'];
 
     protected $casts = [
         'is_available' => 'boolean',
+        'total_quantity' => 'integer',
+        'default_hours' => 'decimal:2',
+        'hourly_rate' => 'decimal:2',
     ];
 
     /**

@@ -5,16 +5,44 @@ namespace App\Http\Controllers;
 use App\Models\Rental;
 use App\Models\EquipmentSetting;
 use App\Models\SystemSetting;
+use App\Services\EquipmentAvailability;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response;
 
 class RentalController extends Controller
 {
-    public function index()
+    public function index(EquipmentAvailability $availability)
     {
         $equipmentSettings = EquipmentSetting::all()->keyBy('equipment_name');
-        return view('rental', compact('equipmentSettings'));
+        $equipmentStats = $this->equipmentAvailability($availability, $equipmentSettings);
+
+        return view('rental', compact('equipmentSettings', 'equipmentStats'));
+    }
+
+    public function availability(EquipmentAvailability $availability)
+    {
+        $equipmentSettings = EquipmentSetting::all()->keyBy('equipment_name');
+
+        return response()->json($this->equipmentAvailability($availability, $equipmentSettings));
+    }
+
+    private function equipmentAvailability(EquipmentAvailability $availability, iterable $equipmentSettings): array
+    {
+        $rentals = Rental::all();
+        $now = now();
+        $equipmentStats = [];
+
+        foreach ($equipmentSettings as $equipment) {
+            $equipmentStats[$equipment->equipment_name] = $availability->summarize(
+                (int) $equipment->total_quantity,
+                $equipment->equipment_name,
+                $rentals,
+                $now
+            );
+        }
+
+        return $equipmentStats;
     }
 
     public function manage()
@@ -65,15 +93,32 @@ class RentalController extends Controller
 
     public function reports(Request $request)
     {
-        $status = $request->query('status', 'all');
-        
-        $query = Rental::latest();
-        if ($status !== 'all') {
-            $query->where('status', $status);
-        }
-        
-        $rentals = $query->get();
-        return view('admin.reports', compact('rentals', 'status'));
+        $rentals = Rental::where('status', 'paid')
+            ->latest()
+            ->get();
+
+        return view('admin.reports', compact('rentals'));
+    }
+
+    public function exportReportsPdf()
+    {
+        $periodEnd = now();
+        $periodStart = $periodEnd->copy()->subDays(30);
+        $paidRentals = Rental::where('status', 'paid')
+            ->whereBetween('updated_at', [$periodStart, $periodEnd])
+            ->orderByDesc('updated_at')
+            ->get();
+        $totalAmount = $paidRentals->sum(static function (Rental $rental): float {
+            return (float) ($rental->payment_amount !== null && $rental->payment_amount > 0
+                ? $rental->payment_amount
+                : $rental->total_amount);
+        });
+
+        $pdf = app('dompdf.wrapper')
+            ->loadView('admin.reports-pdf', compact('paidRentals', 'periodStart', 'periodEnd', 'totalAmount'))
+            ->setPaper('a4', 'landscape');
+
+        return $pdf->download('Approved_Rentals_Last_30_Days_' . now()->format('Y-m-d') . '.pdf');
     }
 
     public function updateStatus(Request $request, $id)
@@ -92,49 +137,31 @@ class RentalController extends Controller
 
     public function payments()
     {
-        // Get completed rentals with payment values
-        $completedRentals = Rental::where('status', 'completed')
-            ->whereNotNull('total_amount')
-            ->where('total_amount', '>', 0)
-            ->latest()
+        // Payment monitoring follows the scheduled rental date and recorded price.
+        $paidRentals = Rental::where('status', 'paid')
+            ->orderByDesc('rental_from')
+            ->orderByDesc('id')
             ->get();
 
-        // Calculate income metrics
-        $today = now()->startOfDay();
-        $thisMonth = now()->startOfMonth();
-        $thisYear = now()->startOfYear();
-        $weekAgo = now()->subDays(7)->startOfDay();
+        $now = now();
+        $rentalPrice = static fn (Rental $rental): float => (float) (
+            $rental->payment_amount !== null && $rental->payment_amount > 0
+                ? $rental->payment_amount
+                : $rental->total_amount
+        );
+        $incomeBetween = static function ($start, $end) use ($paidRentals, $rentalPrice): float {
+            return $paidRentals->sum(static function (Rental $rental) use ($start, $end, $rentalPrice): float {
+                return $rental->rental_from && $rental->rental_from->between($start, $end)
+                    ? $rentalPrice($rental)
+                    : 0;
+            });
+        };
 
-        $dailyIncome = Rental::where('status', 'completed')
-            ->whereNotNull('total_amount')
-            ->where('total_amount', '>', 0)
-            ->whereBetween('updated_at', [$today, $today->copy()->endOfDay()])
-            ->sum('total_amount');
+        $weeklyIncome = $incomeBetween($now->copy()->startOfWeek(), $now->copy()->endOfWeek());
+        $monthlyIncome = $incomeBetween($now->copy()->startOfMonth(), $now->copy()->endOfMonth());
+        $yearlyIncome = $incomeBetween($now->copy()->startOfYear(), $now->copy()->endOfYear());
 
-        $weeklyIncome = Rental::where('status', 'completed')
-            ->whereNotNull('total_amount')
-            ->where('total_amount', '>', 0)
-            ->whereBetween('updated_at', [$weekAgo, now()])
-            ->sum('total_amount');
-
-        $monthlyIncome = Rental::where('status', 'completed')
-            ->whereNotNull('total_amount')
-            ->where('total_amount', '>', 0)
-            ->whereBetween('updated_at', [$thisMonth, $thisMonth->copy()->endOfMonth()])
-            ->sum('total_amount');
-
-        $yearlyIncome = Rental::where('status', 'completed')
-            ->whereNotNull('total_amount')
-            ->where('total_amount', '>', 0)
-            ->whereBetween('updated_at', [$thisYear, $thisYear->copy()->endOfYear()])
-            ->sum('total_amount');
-
-        $totalIncome = Rental::where('status', 'completed')
-            ->whereNotNull('total_amount')
-            ->where('total_amount', '>', 0)
-            ->sum('total_amount');
-
-        return view('admin.payments', compact('completedRentals', 'dailyIncome', 'weeklyIncome', 'monthlyIncome', 'yearlyIncome', 'totalIncome'));
+        return view('admin.payments', compact('paidRentals', 'weeklyIncome', 'monthlyIncome', 'yearlyIncome'));
     }
 
     public function exportPaymentsPdf()

@@ -488,42 +488,11 @@
             border: 1px solid #c3e6cb;
         }
     </style>
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- SIDEBAR -->
-        <div class="sidebar">
-            <a href="#" class="sidebar-logo">
-                <img src="{{ asset('images/buguey-logo.png') }}" alt="Buguey Logo">
-                FARMERS EQUIPMENT RENTAL
-            </a>
-
-            <div class="sidebar-menu">
-                <a href="{{ route('admin.dashboard') }}" class="sidebar-item active">
-                    Dashboard
-                </a>
-                <a href="{{ route('admin.rentals') }}" class="sidebar-item">
-                    
-                    Rentals
-                </a>
-                <a href="{{ route('admin.paid-rentals') }}" class="sidebar-item">
-                    
-                    Paid Rentals
-                </a>
-                <a href="{{ route('admin.reports') }}" class="sidebar-item">
-                    
-                    Reports
-                </a>
-                <a href="{{ route('admin.payments') }}" class="sidebar-item">
-                
-                    Payment
-                </a>
-                <a href="{{ route('admin.settings') }}" class="sidebar-item">
-                    
-                    Settings
-                </a>
-            </div>
-        </div>
+        @include('admin.partials.sidebar')
 
         <!-- MAIN CONTENT -->
         <div class="main-content">

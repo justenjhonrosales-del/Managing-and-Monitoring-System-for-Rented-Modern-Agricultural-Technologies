@@ -897,7 +897,7 @@
 
                 <ul class="nav-links">
                     <li><a href="{{ route('staff.welcome') }}">Home</a></li>
-                      <li><a href="{{ route('rents.index') }}">Rents</a></li>
+                      <li><a href="{{ route('rents.index') }}">Payments</a></li>
                       <li><a href="{{ route('staff.schedule') }}">Schedule</a></li>
                     <li><a href="{{ route('about') }}">About</a></li>
                    
@@ -996,25 +996,12 @@
                             'Kuliglig' => 2,
                         ];
 
-                        $existingRentals = \App\Models\Rental::whereNotNull('rental_from')->get();
-                        $equipmentStats = [];
-
+                        $equipmentStats = $equipmentStats ?? [];
                         foreach ($equipmentDefaults as $equipmentName => $totalUnits) {
-                            $pendingCount = $existingRentals->filter(function ($rental) use ($equipmentName) {
-                                $rentalEquipment = is_array($rental->equipment) ? $rental->equipment : json_decode($rental->equipment, true);
-                                $equipmentNames = collect($rentalEquipment ?? [])
-                                    ->pluck('name')
-                                    ->filter()
-                                    ->all();
-
-                                return in_array($equipmentName, $equipmentNames, true)
-                                    && strtolower((string) $rental->status) === 'pending';
-                            })->count();
-
-                            $equipmentStats[$equipmentName] = [
-                                'available' => max($totalUnits - $pendingCount, 0),
-                                'pending' => $pendingCount,
-                            ];
+                            $equipmentStats[$equipmentName] = array_merge(
+                                ['available' => $totalUnits, 'pending' => 0, 'maintenance' => 0],
+                                $equipmentStats[$equipmentName] ?? []
+                            );
                         }
 
                         $equipments = [
@@ -1023,18 +1010,21 @@
                                 'image' => 'tractor.png',
                                 'available' => $equipmentStats['Tractor']['available'],
                                 'pending' => $equipmentStats['Tractor']['pending'],
+                                'maintenance' => $equipmentStats['Tractor']['maintenance'],
                             ],
                             [
                                 'name' => 'Reaper or Thresher',
                                 'image' => 'reaper or thresher.jpg',
                                 'available' => $equipmentStats['Reaper or Thresher']['available'],
                                 'pending' => $equipmentStats['Reaper or Thresher']['pending'],
+                                'maintenance' => $equipmentStats['Reaper or Thresher']['maintenance'],
                             ],
                             [
                                 'name' => 'Kuliglig',
                                 'image' => 'kuliglig.jpg',
                                 'available' => $equipmentStats['Kuliglig']['available'],
                                 'pending' => $equipmentStats['Kuliglig']['pending'],
+                                'maintenance' => $equipmentStats['Kuliglig']['maintenance'],
                             ],
                         ];
                     @endphp
@@ -1049,21 +1039,22 @@
                                 <div class="equipment-status-list">
                                     <div class="equipment-status-item">
                                         <span class="equipment-status-label">Available</span>
-                                        <span class="equipment-status-value">{{ $equipment['available'] }}</span>
+                                        <span class="equipment-status-value" data-availability-equipment="{{ $equipment['name'] }}" data-availability-state="available">{{ $equipment['available'] }}</span>
                                     </div>
                                     <div class="equipment-status-item">
                                         <span class="equipment-status-label">Pending</span>
-                                        <span class="equipment-status-value">{{ $equipment['pending'] }}</span>
+                                        <span class="equipment-status-value" data-availability-equipment="{{ $equipment['name'] }}" data-availability-state="pending">{{ $equipment['pending'] }}</span>
                                     </div>
                                     <div class="equipment-status-item">
                                         <span class="equipment-status-label">Maintenance</span>
-                                        <span class="equipment-status-value">0</span>
+                                        <span class="equipment-status-value" data-availability-equipment="{{ $equipment['name'] }}" data-availability-state="maintenance">{{ $equipment['maintenance'] }}</span>
                                     </div>
                                 </div>
                                 @if ($equipment['name'] === 'Tractor' || $equipment['name'] === 'Kuliglig' || $equipment['name'] === 'Reaper or Thresher')
                                     <button type="button" class="equipment-rent-btn rent-trigger"
                                         data-image="{{ asset('images/' . $equipment['image']) }}"
                                         data-name="{{ $equipment['name'] }}"
+                                        data-availability-rent-button="{{ $equipment['name'] }}"
                                         data-available="{{ $equipment['available'] }}"
                                         data-equipment-type="{{ $equipment['name'] === 'Kuliglig' ? 'kuliglig' : ($equipment['name'] === 'Reaper or Thresher' ? 'thresher' : 'tractor') }}"
                                         data-base-price="{{ \App\Models\SystemSetting::get('thresher_base_price', 2800) }}">
@@ -1433,6 +1424,11 @@
                     });
                 }
 
+                function localDateInputValue() {
+                    const date = new Date();
+                    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                }
+
                 const customerNameInput = document.querySelector('input[name="customer_name"]');
                 const rentModal = document.getElementById('rentModal');
                 const kuligligRentModal = document.getElementById('kuligligRentModal');
@@ -1543,7 +1539,7 @@
 
                 // initialize default date/time
                 if (thresherRentDateInput) {
-                    const today = new Date().toISOString().slice(0,10);
+                    const today = localDateInputValue();
                     if (!thresherRentDateInput.value) thresherRentDateInput.value = today;
                 }
 
@@ -1587,7 +1583,7 @@
                     thresherSelectedHectares = 1.0;
                     thresherPublicBtn.classList.add('active'); thresherPrivateBtn.classList.remove('active');
                     if (thresherRentDateInput) {
-                        const today = new Date().toISOString().slice(0,10);
+                        const today = localDateInputValue();
                         if (!thresherRentDateInput.value) thresherRentDateInput.value = today;
                     }
                     if (thresherRentHoursInput) thresherRentHoursInput.value = '02:00 PM';
@@ -1677,7 +1673,7 @@
 
                 // initialize date and hours inputs and wire events
                 if (rentDateInput) {
-                    const today = new Date().toISOString().slice(0,10);
+                    const today = localDateInputValue();
                     if (!rentDateInput.value) rentDateInput.value = today;
                     if (rentalFromHidden) rentalFromHidden.value = rentDateInput.value;
                     rentDateInput.addEventListener('change', function() {
@@ -1829,7 +1825,7 @@
 
                     // set defaults for date and hours when opening
                     if (rentDateInput) {
-                        const today = new Date().toISOString().slice(0,10);
+                        const today = localDateInputValue();
                         if (!rentDateInput.value) rentDateInput.value = today;
                         if (rentalFromHidden) rentalFromHidden.value = rentDateInput.value;
                     }
@@ -1854,7 +1850,7 @@
                     selectedKuligligDays = 1;
 
                     if (kuligligRentDateInput) {
-                        const today = new Date().toISOString().slice(0,10);
+                        const today = localDateInputValue();
                         if (!kuligligRentDateInput.value) kuligligRentDateInput.value = today;
                     }
                     if (kuligligRentHoursInput) {
@@ -2136,5 +2132,42 @@
         </div>
     </main>
 
+    <script>
+        (() => {
+            const countNodes = document.querySelectorAll('[data-availability-state]');
+            const availabilityUrl = @json(route('rental.availability'));
+
+            async function refreshAvailability() {
+                try {
+                    const response = await fetch(availabilityUrl, {
+                        headers: { Accept: 'application/json' },
+                        cache: 'no-store',
+                    });
+                    if (!response.ok) return;
+
+                    const summaries = await response.json();
+                    countNodes.forEach((node) => {
+                        const summary = summaries[node.dataset.availabilityEquipment];
+                        const state = node.dataset.availabilityState;
+                        if (summary && Object.prototype.hasOwnProperty.call(summary, state)) {
+                            node.textContent = summary[state];
+                        }
+                    });
+
+                    document.querySelectorAll('[data-availability-rent-button]').forEach((button) => {
+                        const summary = summaries[button.dataset.availabilityRentButton];
+                        if (summary) button.dataset.available = summary.available;
+                    });
+                } catch (error) {
+                    console.error('Unable to refresh equipment availability.', error);
+                }
+            }
+
+            refreshAvailability();
+            window.setInterval(() => {
+                if (!document.hidden) refreshAvailability();
+            }, 10000);
+        })();
+    </script>
 </body>
 </html>
