@@ -94,7 +94,7 @@ Route::get('/admin/equipment', [AdminEquipmentController::class, 'index'])->midd
 Route::put('/admin/equipment', [AdminEquipmentController::class, 'update'])->middleware(['is.admin'])->name('admin.equipment.update');
 Route::put('/admin/equipment/{equipmentSetting}/availability', [AdminEquipmentController::class, 'updateAvailability'])->middleware(['is.admin'])->name('admin.equipment.availability');
 Route::view('/admin/customers', 'admin.placeholder', ['pageTitle' => 'Customers'])->middleware(['is.admin'])->name('admin.customers');
-Route::view('/admin/change-password', 'admin.placeholder', ['pageTitle' => 'Change Password'])->middleware(['is.admin'])->name('admin.change-password');
+Route::get('/admin/change-password', [SettingsController::class, 'showAdminChangePassword'])->middleware(['is.admin'])->name('admin.change-password');
 
 // Settings routes
 Route::get('/admin/settings', [SettingsController::class, 'index'])->middleware(['is.admin'])->name('admin.settings');
@@ -104,6 +104,10 @@ Route::put('/admin/settings/account', [SettingsController::class, 'updateAccount
 Route::put('/admin/settings/password', [SettingsController::class, 'updatePassword'])->middleware(['is.admin'])->name('settings.password.update');
 Route::post('/admin/settings/toggle/automark', [SettingsController::class, 'toggleAutoMarkUnavailable'])->middleware(['is.admin'])->name('settings.toggle.automark');
 Route::post('/admin/settings/toggle/loginrules', [SettingsController::class, 'toggleLoginRules'])->middleware(['is.admin'])->name('settings.toggle.loginrules');
+Route::post('/admin/settings/backup/manual', [SettingsController::class, 'createManualBackup'])->middleware(['is.admin'])->name('settings.backup.manual');
+Route::post('/admin/settings/backup/settings', [SettingsController::class, 'saveBackupSettings'])->middleware(['is.admin'])->name('settings.backup.save');
+Route::get('/admin/settings/backups/{filename}/download', [SettingsController::class, 'downloadBackup'])->middleware(['is.admin'])->name('settings.backup.download');
+Route::post('/admin/settings/backups/restore', [SettingsController::class, 'restoreBackup'])->middleware(['is.admin'])->name('settings.backup.restore');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

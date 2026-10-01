@@ -6,15 +6,17 @@ use App\Models\SystemSetting;
 use App\Models\EquipmentSetting;
 use App\Models\LoginAttempt;
 use App\Models\User;
+use App\Services\BackupService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class SettingsController extends Controller
 {
     /**
      * Show the settings page
      */
-    public function index()
+    public function index(BackupService $backupService)
     {
         $equipmentSettings = EquipmentSetting::all();
         
@@ -25,6 +27,10 @@ class SettingsController extends Controller
             'lockout_duration_minutes' => SystemSetting::get('lockout_duration_minutes', 15),
             'auto_mark_unavailable' => SystemSetting::get('auto_mark_unavailable', 1),
             'enable_login_rules' => SystemSetting::get('enable_login_rules', 1),
+            'automatic_backup_enabled' => SystemSetting::get('automatic_backup_enabled', 0),
+            'backup_frequency' => SystemSetting::get('backup_frequency', 'daily'),
+            'backup_time' => SystemSetting::get('backup_time', '03:00'),
+            'last_backup_date' => SystemSetting::get('last_backup_date'),
         ];
 
         $currentUser = auth()->user();
@@ -39,17 +45,21 @@ class SettingsController extends Controller
             ];
         }
 
-        // Get login attempts for current admin
         $recentLoginAttempts = LoginAttempt::where('email', $currentUser->email)
             ->orderBy('attempted_at', 'desc')
             ->limit(10)
             ->get();
 
+        $backupHistory = $backupService->listBackups();
+        $lastManualBackup = SystemSetting::get('last_manual_backup_date');
+
         return view('admin.settings', compact(
             'equipmentSettings',
             'systemSettings',
             'recentLoginAttempts',
-            'currentUser'
+            'currentUser',
+            'backupHistory',
+            'lastManualBackup'
         ));
     }
 
@@ -116,6 +126,14 @@ class SettingsController extends Controller
     }
 
     /**
+     * Show admin change password page
+     */
+    public function showAdminChangePassword()
+    {
+        return view('admin.change-password', ['pageTitle' => 'Change Password']);
+    }
+
+    /**
      * Update admin password
      */
     public function updatePassword(Request $request)
@@ -128,6 +146,14 @@ class SettingsController extends Controller
         ]);
 
         $user = auth()->user();
+
+        if (!$user && session('welcome_dashboard_logged_in') && session('welcome_dashboard_role') === 'admin') {
+            $user = User::find(session('welcome_dashboard_user_id'));
+        }
+
+        if (!$user) {
+            return redirect()->route('welcome.login.show');
+        }
 
         // Check current password
         if (!Hash::check($validated['current_password'], $user->password)) {
@@ -164,6 +190,50 @@ class SettingsController extends Controller
         $user->update(['password' => Hash::make($validated['new_password'])]);
 
         return back()->with('staff_password_changed', 'Password changed successfully.');
+    }
+
+    public function createManualBackup(BackupService $backupService)
+    {
+        $backup = $backupService->createBackup('manual');
+
+        return redirect()->route('admin.settings')->with('success', 'Backup created successfully.');
+    }
+
+    public function saveBackupSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'automatic_backup_enabled' => 'nullable|boolean',
+            'backup_frequency' => 'required|in:daily,weekly,monthly',
+            'backup_time' => 'required|date_format:H:i',
+        ]);
+
+        SystemSetting::set('automatic_backup_enabled', $validated['automatic_backup_enabled'] ? 1 : 0);
+        SystemSetting::set('backup_frequency', $validated['backup_frequency']);
+        SystemSetting::set('backup_time', $validated['backup_time']);
+
+        return back()->with('success', 'Backup settings updated successfully.');
+    }
+
+    public function downloadBackup(string $filename, BackupService $backupService)
+    {
+        $filePath = storage_path('app/backups/' . basename($filename));
+
+        if (!file_exists($filePath)) {
+            abort(404, 'Backup file not found.');
+        }
+
+        return response()->download($filePath, basename($filename));
+    }
+
+    public function restoreBackup(Request $request, BackupService $backupService)
+    {
+        $validated = $request->validate([
+            'backup_file' => 'required|string',
+        ]);
+
+        $backupService->restoreBackup($validated['backup_file']);
+
+        return back()->with('success', 'System restored successfully.');
     }
 
     /**

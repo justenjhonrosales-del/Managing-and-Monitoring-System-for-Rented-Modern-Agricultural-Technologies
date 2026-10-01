@@ -40,9 +40,14 @@
             <img class="admin-sidebar-icon admin-sidebar-image-icon" src="{{ asset('images/settings.svg') }}" alt="">
             <span>Settings</span>
         </a>
-        <a href="{{ route('admin.change-password') }}" @class(['admin-sidebar-link', 'is-active' => request()->routeIs('admin.change-password')]) @if(request()->routeIs('admin.change-password')) aria-current="page" @endif>
+        <a href="{{ route('admin.change-password') }}" class="admin-sidebar-link admin-change-password-trigger" @if(request()->routeIs('admin.change-password')) aria-current="page" @endif>
             <img class="admin-sidebar-icon admin-sidebar-image-icon" src="{{ asset('images/change password.svg') }}" alt="">
             <span>Change Password</span>
+        </a>
+
+        <a href="{{ route('welcome.logout') }}" class="admin-sidebar-link admin-sidebar-logout">
+            <svg class="admin-sidebar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17v-2h7V9h-7V7l-5 5 5 5zm-7-7h8v2H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Logout</span>
         </a>
     </nav>
 </aside>

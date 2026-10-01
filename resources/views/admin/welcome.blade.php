@@ -487,6 +487,101 @@
             color: #155724;
             border: 1px solid #c3e6cb;
         }
+
+        .admin-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(20, 26, 25, 0.35);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+
+        .admin-modal-backdrop.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .admin-modal-card {
+            position: relative;
+            width: min(100%, 700px);
+            padding: 14px 20px 18px;
+            border-radius: 18px;
+            background: #ffffff;
+            box-shadow: 0 18px 45px rgba(15, 52, 34, 0.16);
+        }
+
+        .admin-modal-title {
+            margin: 12px 0 12px;
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.2rem, 2.4vw, 3rem);
+            font-weight: 700;
+            text-align: center;
+            color: #0f3a2b;
+        }
+
+        .admin-modal-form {
+            display: grid;
+            gap: 12px;
+        }
+
+        .admin-modal-field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .admin-modal-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #173d34;
+        }
+
+        .admin-modal-input {
+            width: 100%;
+            box-sizing: border-box;
+            height: 42px;
+            padding: 10px 12px;
+            border: 1px solid #c9d1cd;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #1a302a;
+        }
+
+        .admin-modal-input:focus {
+            border-color: #1b8d5f;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(27, 141, 95, 0.12);
+        }
+
+        .admin-modal-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 6px;
+        }
+
+        .admin-modal-submit {
+            min-width: 200px;
+            height: 48px;
+            border: 0;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #0d7f55, #1da05d);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 0 18px;
+            cursor: pointer;
+            box-shadow: 0 12px 22px rgba(13, 127, 85, 0.18);
+        }
+
+        .admin-modal-error {
+            color: #b42318;
+            font-size: 0.88rem;
+        }
     </style>
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
 </head>
@@ -643,13 +738,48 @@
         </div>
     </div>
 
+    <div id="changePasswordModal" class="admin-modal-backdrop" aria-hidden="true">
+        <div class="admin-modal-card" role="dialog" aria-modal="true" aria-labelledby="changePasswordTitle">
+            <h2 id="changePasswordTitle" class="admin-modal-title">Settings</h2>
+
+            <form method="POST" action="{{ route('settings.password.update') }}" class="admin-modal-form">
+                @csrf
+                @method('PUT')
+
+                <div class="admin-modal-field">
+                    <label for="modalCurrentPassword" class="admin-modal-label">Current Password</label>
+                    <input id="modalCurrentPassword" name="current_password" type="password" class="admin-modal-input" autocomplete="current-password" required>
+                    @error('current_password')
+                        <span class="admin-modal-error">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="admin-modal-field">
+                    <label for="modalNewPassword" class="admin-modal-label">New Password</label>
+                    <input id="modalNewPassword" name="new_password" type="password" class="admin-modal-input" autocomplete="new-password" required>
+                    @error('new_password')
+                        <span class="admin-modal-error">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="admin-modal-field">
+                    <label for="modalConfirmPassword" class="admin-modal-label">Confirm New Password</label>
+                    <input id="modalConfirmPassword" name="new_password_confirmation" type="password" class="admin-modal-input" autocomplete="new-password" required>
+                </div>
+
+                <div class="admin-modal-actions">
+                    <button type="submit" class="admin-modal-submit">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function toggleDropdown() {
             const menu = document.getElementById('dropdownMenu');
             menu.classList.toggle('active');
         }
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const menu = document.getElementById('dropdownMenu');
             const avatar = event.target.closest('.admin-avatar');
@@ -658,22 +788,51 @@
             }
         });
 
-        // Search functionality
+        const modal = document.getElementById('changePasswordModal');
+        const modalTrigger = document.querySelector('.admin-change-password-trigger');
+        const modalClose = document.querySelector('.admin-modal-close');
+
+        if (modalTrigger) {
+            modalTrigger.addEventListener('click', function(event) {
+                event.preventDefault();
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+            });
+        }
+
+        if (modalClose) {
+            modalClose.addEventListener('click', function() {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+            });
+        }
+
+        if (modal) {
+            modal.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.classList.remove('is-open');
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+            });
+        }
+
         const searchInput = document.getElementById('searchInput');
         const rentalRows = document.querySelectorAll('.rental-row');
 
-        searchInput.addEventListener('keyup', function() {
-            const searchTerm = this.value.toLowerCase();
-            rentalRows.forEach(row => {
-                const customerName = row.getAttribute('data-customer');
-                const rentalId = row.getAttribute('data-id');
-                if (customerName.includes(searchTerm) || rentalId.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                rentalRows.forEach(row => {
+                    const customerName = row.getAttribute('data-customer');
+                    const rentalId = row.getAttribute('data-id');
+                    if (customerName.includes(searchTerm) || rentalId.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
             });
-        });
+        }
     </script>
 </body>
 </html>
